@@ -1,0 +1,9 @@
+{
+  "name": "consultant-resource-manager",
+  "version": "1.0.0",
+  "description": "Consultant Resource Management System",
+  "scripts": {
+    "test": "node tests/property/area-crud.test.js",
+    "test:property": "node tests/property/area-crud.test.js"
+  }
+}
