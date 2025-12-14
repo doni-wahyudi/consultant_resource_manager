@@ -192,6 +192,7 @@ const TalentSidebar = {
                 <div class="talent-avatar">${initials}</div>
                 <div class="talent-info">
                     <div class="talent-name">${talent.name}</div>
+                    ${talent.homebase_location ? `<div class="talent-location">📍 ${talent.homebase_location}</div>` : ''}
                     <div class="talent-status ${isAvailable ? 'available' : 'unavailable'}">
                         ${isAvailable ? '✓ Available' : `⚠ ${assignmentInfo || 'Busy'}`}
                     </div>

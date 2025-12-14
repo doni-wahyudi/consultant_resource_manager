@@ -33,6 +33,7 @@ const TalentDetailPage = {
                     </div>
                     <p><strong>Email:</strong> ${talent.email || '-'}</p>
                     <p><strong>Phone:</strong> ${talent.phone || '-'}</p>
+                    <p><strong>Homebase Location:</strong> ${talent.homebase_location || '-'}</p>
                     <p><strong>Notes:</strong> ${talent.notes || '-'}</p>
                 </div>
                 <div class="card">

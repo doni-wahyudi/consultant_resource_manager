@@ -29,12 +29,16 @@ CREATE TABLE IF NOT EXISTS talents (
     name VARCHAR(200) NOT NULL,
     email VARCHAR(255) UNIQUE,
     phone VARCHAR(50),
+    homebase_location VARCHAR(200),
     skills TEXT[] DEFAULT '{}',
     photo_url VARCHAR(500),
     notes TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+-- Migration for existing databases: Add homebase_location column
+-- ALTER TABLE talents ADD COLUMN IF NOT EXISTS homebase_location VARCHAR(200);
 
 -- Talent-Area junction table
 CREATE TABLE IF NOT EXISTS talent_areas (

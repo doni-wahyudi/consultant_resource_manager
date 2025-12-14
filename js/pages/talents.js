@@ -51,6 +51,7 @@ const TalentsPage = {
                     <tr>
                         <th>Name</th>
                         <th>Email</th>
+                        <th>Location</th>
                         <th>Skills</th>
                         <th>Business Areas</th>
                         <th>Actions</th>
@@ -67,6 +68,7 @@ const TalentsPage = {
                                     <a href="#/talent/${talent.id}" class="talent-link">${talent.name}</a>
                                 </td>
                                 <td>${talent.email || '-'}</td>
+                                <td>${talent.homebase_location || '-'}</td>
                                 <td>${(talent.skills || []).slice(0, 3).join(', ')}${talent.skills?.length > 3 ? '...' : ''}</td>
                                 <td>${talentAreas.slice(0, 2).join(', ')}${talentAreas.length > 2 ? '...' : ''}</td>
                                 <td>
@@ -126,6 +128,10 @@ const TalentsPage = {
                         <label class="form-label">Phone</label>
                         <input type="text" name="phone" class="form-input" value="${talent?.phone || ''}">
                     </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Homebase Location</label>
+                    <input type="text" name="homebase_location" class="form-input" value="${talent?.homebase_location || ''}" placeholder="e.g., New York, NY">
                 </div>
                 <div class="form-group">
                     <label class="form-label">Skills</label>
@@ -244,6 +250,7 @@ const TalentsPage = {
             name: formData.get('name'),
             email: formData.get('email') || null,
             phone: formData.get('phone') || null,
+            homebase_location: formData.get('homebase_location') || null,
             notes: formData.get('notes') || null,
             skills: JSON.parse(document.getElementById('skills-hidden').value || '[]')
         };

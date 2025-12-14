@@ -14,7 +14,7 @@ const AuthPage = {
             <div class="auth-container">
                 <div class="auth-card">
                     <div class="auth-header">
-                        <h1 class="auth-logo">CRM</h1>
+                        <h1 class="auth-logo">NIN</h1>
                         <p class="auth-subtitle">Consultant Resource Manager</p>
                     </div>
                     <div id="auth-form-container"></div>
