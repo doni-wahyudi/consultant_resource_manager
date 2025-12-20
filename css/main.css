@@ -39,13 +39,26 @@
     padding: 0;
 }
 
-html, body {
+html {
     height: 100%;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
     font-size: 14px;
     line-height: 1.5;
     color: var(--text-primary);
     background-color: var(--bg-secondary);
+    -webkit-text-size-adjust: 100%;
+}
+
+body {
+    min-height: 100%;
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
+    color: inherit;
+    background-color: inherit;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 
@@ -278,6 +291,8 @@ html, body {
     
     body {
         overflow-x: hidden;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
     }
     
     /* CRITICAL: Force show hamburger menu on mobile */
@@ -295,8 +310,11 @@ html, body {
         margin-left: 0 !important;
         padding: 16px;
         padding-top: 60px;
+        padding-bottom: 24px;
         min-height: 100vh;
         width: 100%;
+        overflow-y: visible;
+        overflow-x: hidden;
     }
     
     .page-header {
@@ -344,7 +362,8 @@ html, body {
     .calendar-page-layout {
         flex-direction: column;
         height: auto;
-        min-height: calc(100vh - 120px);
+        min-height: auto;
+        gap: 12px;
     }
     
     .talent-sidebar {
@@ -353,9 +372,12 @@ html, body {
         max-height: 250px;
         border-right: none;
         border-bottom: 1px solid var(--border-color);
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
     }
     
-    .data-table-wrapper {
+    .data-table-wrapper,
+    .table-wrapper {
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
         margin: 0 -16px;
@@ -367,13 +389,15 @@ html, body {
     }
     
     .modal-content {
-        margin: 8px;
-        max-height: calc(100vh - 16px);
-        border-radius: var(--border-radius);
+        margin: 0;
+        max-height: 90vh;
+        border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0;
     }
     
     .modal-body {
-        max-height: 50vh;
+        max-height: calc(90vh - 130px);
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
     }
     
     .toast-container {
@@ -422,6 +446,33 @@ html, body {
         width: 20px;
         height: 20px;
     }
+    
+    /* Card scrollable content */
+    .card-body {
+        max-height: none;
+        overflow-y: visible;
+    }
+    
+    /* Selection list scrollable */
+    .selection-list {
+        max-height: 300px;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    /* Checkbox group scrollable */
+    .checkbox-group {
+        max-height: 200px;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    /* Talent selection list scrollable */
+    .talent-selection-list {
+        max-height: 200px;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
 }
 
 /* Responsive: Small Mobile */
@@ -433,6 +484,7 @@ html, body {
     .main-content {
         padding: 12px;
         padding-top: 56px;
+        padding-bottom: 20px;
         margin-left: 0 !important;
     }
     
@@ -465,17 +517,20 @@ html, body {
     
     .modal-content {
         margin: 0;
-        border-radius: 0;
-        max-height: 100vh;
-        height: 100vh;
+        border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0;
+        max-height: 95vh;
     }
     
     .modal-body {
-        max-height: calc(100vh - 140px);
+        max-height: calc(95vh - 130px);
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
     }
     
     .talent-sidebar {
         max-height: 200px;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
     }
     
     .nav-sidebar {
@@ -491,6 +546,12 @@ html, body {
     
     .actions-cell .btn {
         width: 100%;
+    }
+    
+    /* Talent profile responsive */
+    .talent-profile {
+        grid-template-columns: 1fr;
+        gap: 16px;
     }
 }
 

@@ -530,11 +530,13 @@
         max-height: 220px;
         border-right: none;
         border-bottom: 1px solid var(--border-color);
-        border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0;
+        border-radius: var(--border-radius-lg);
+        overflow: hidden;
     }
     
     .talent-sidebar-header {
         padding: 12px;
+        flex-shrink: 0;
     }
     
     .talent-sidebar-title {
@@ -552,6 +554,9 @@
         display: flex;
         flex-wrap: wrap;
         gap: 8px;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        max-height: 150px;
     }
     
     .talent-card {
@@ -596,6 +601,7 @@
     
     .legend-items {
         gap: 8px;
+        flex-wrap: wrap;
     }
     
     .legend-color {
@@ -610,6 +616,16 @@
     .project-detail-grid {
         grid-template-columns: 1fr;
         gap: 12px;
+    }
+    
+    /* Calendar container scrollable */
+    .calendar-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .calendar-grid {
+        min-width: 320px;
     }
 }
 

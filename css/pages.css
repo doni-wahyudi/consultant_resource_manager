@@ -10,16 +10,26 @@
     flex: 1;
     margin-left: var(--nav-width);
     padding: 24px;
-    overflow-y: auto;
     overflow-x: hidden;
+    overflow-y: auto;
     width: 100%;
     min-width: 0;
+    min-height: 100vh;
+    -webkit-overflow-scrolling: touch;
 }
 
 @media (max-width: 768px) {
+    .app-container {
+        flex-direction: column;
+    }
+    
     .main-content {
         margin-left: 0;
         width: 100%;
+        padding: 16px;
+        padding-top: 60px;
+        padding-bottom: 24px;
+        min-height: calc(100vh - 60px);
     }
 }
 
@@ -28,6 +38,8 @@
     display: none;
     animation: fadeIn var(--transition-normal);
     overflow-x: hidden;
+    overflow-y: visible;
+    min-height: 0;
 }
 
 .page-container.active {
@@ -239,7 +251,6 @@
 .calendar-page-layout {
     display: flex;
     gap: 24px;
-    height: calc(100vh - 48px - 64px);
     min-height: 400px;
 }
 
@@ -254,7 +265,6 @@
 @media (max-width: 1024px) {
     .calendar-page-layout {
         gap: 16px;
-        height: calc(100vh - 40px - 60px);
     }
 }
 
@@ -262,12 +272,13 @@
     .calendar-page-layout {
         flex-direction: column;
         height: auto;
-        min-height: calc(100vh - 100px);
+        min-height: auto;
         gap: 12px;
     }
     
     .calendar-main {
         gap: 12px;
+        min-height: auto;
     }
 }
 
