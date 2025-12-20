@@ -12,7 +12,7 @@
     z-index: 100;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
-    transition: transform 0.25s ease;
+    transition: transform 0.3s ease;
 }
 
 /* Mobile sidebar - hidden by default */
@@ -21,13 +21,13 @@
         width: 280px;
         max-width: 85vw;
         transform: translateX(-100%);
-        z-index: 200;
+        z-index: 600;
         box-shadow: none;
     }
     
     .nav-sidebar.open {
         transform: translateX(0);
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        box-shadow: 4px 0 20px rgba(0, 0, 0, 0.15);
     }
 }
 

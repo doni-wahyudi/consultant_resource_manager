@@ -190,9 +190,28 @@ const Router = {
      * Set up mobile navigation toggle and overlay
      */
     setupMobileNav() {
-        // Mobile nav is handled by inline onclick handlers in HTML
-        // This function just adds keyboard support
+        const navToggle = document.getElementById('nav-toggle');
         const navSidebar = document.getElementById('nav-sidebar');
+        const navOverlay = document.getElementById('nav-overlay');
+        
+        if (navToggle && navSidebar) {
+            // Handle click/touch on hamburger button
+            navToggle.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                navSidebar.classList.toggle('open');
+                if (navOverlay) {
+                    navOverlay.classList.toggle('active');
+                }
+            });
+        }
+        
+        if (navOverlay) {
+            // Close when clicking overlay
+            navOverlay.addEventListener('click', () => {
+                this.closeMobileNav();
+            });
+        }
         
         // Close navigation when pressing Escape key
         document.addEventListener('keydown', (e) => {

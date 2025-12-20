@@ -20,37 +20,12 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-    <!-- Mobile Navigation Functions (must be before elements that use them) -->
-    <script>
-    function toggleMobileNav() {
-        var sidebar = document.getElementById('nav-sidebar');
-        var overlay = document.getElementById('nav-overlay');
-        if (sidebar) {
-            sidebar.classList.toggle('open');
-        }
-        if (overlay) {
-            overlay.classList.toggle('active');
-        }
-    }
-    
-    function closeMobileNav() {
-        var sidebar = document.getElementById('nav-sidebar');
-        var overlay = document.getElementById('nav-overlay');
-        if (sidebar) {
-            sidebar.classList.remove('open');
-        }
-        if (overlay) {
-            overlay.classList.remove('active');
-        }
-    }
-    </script>
-    
     <div class="app-container">
         <!-- Mobile Navigation Toggle -->
-        <button class="nav-toggle" id="nav-toggle" aria-label="Toggle navigation" onclick="toggleMobileNav()">☰</button>
+        <button class="nav-toggle" id="nav-toggle" aria-label="Toggle navigation" type="button">☰</button>
         
         <!-- Navigation Overlay (for mobile) -->
-        <div class="nav-overlay" id="nav-overlay" onclick="closeMobileNav()"></div>
+        <div class="nav-overlay" id="nav-overlay"></div>
         
         <!-- Navigation Sidebar -->
         <nav class="nav-sidebar" id="nav-sidebar">
@@ -60,43 +35,43 @@
             </div>
             <ul class="nav-menu">
                 <li class="nav-item">
-                    <a href="#/dashboard" class="nav-link" data-page="dashboard" onclick="closeMobileNav()">
+                    <a href="#/dashboard" class="nav-link" data-page="dashboard">
                         <span class="nav-icon">📊</span>
                         <span class="nav-text">Dashboard</span>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="#/calendar" class="nav-link" data-page="calendar" onclick="closeMobileNav()">
+                    <a href="#/calendar" class="nav-link" data-page="calendar">
                         <span class="nav-icon">📅</span>
                         <span class="nav-text">Calendar</span>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="#/talents" class="nav-link" data-page="talents" onclick="closeMobileNav()">
+                    <a href="#/talents" class="nav-link" data-page="talents">
                         <span class="nav-icon">👥</span>
                         <span class="nav-text">Talents</span>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="#/projects" class="nav-link" data-page="projects" onclick="closeMobileNav()">
+                    <a href="#/projects" class="nav-link" data-page="projects">
                         <span class="nav-icon">📁</span>
                         <span class="nav-text">Projects</span>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="#/completed" class="nav-link" data-page="completed" onclick="closeMobileNav()">
+                    <a href="#/completed" class="nav-link" data-page="completed">
                         <span class="nav-icon">✅</span>
                         <span class="nav-text">Completed</span>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="#/clients" class="nav-link" data-page="clients" onclick="closeMobileNav()">
+                    <a href="#/clients" class="nav-link" data-page="clients">
                         <span class="nav-icon">🏢</span>
                         <span class="nav-text">Clients</span>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="#/settings" class="nav-link" data-page="settings" onclick="closeMobileNav()">
+                    <a href="#/settings" class="nav-link" data-page="settings">
                         <span class="nav-icon">⚙️</span>
                         <span class="nav-text">Settings</span>
                     </a>
@@ -171,5 +146,47 @@
     <script src="js/pages/settings.js"></script>
     <script src="js/pages/auth.js"></script>
     <script src="js/app.js"></script>
+    
+    <!-- Mobile Nav Fallback - runs after all scripts loaded -->
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var toggle = document.getElementById('nav-toggle');
+        var sidebar = document.getElementById('nav-sidebar');
+        var overlay = document.getElementById('nav-overlay');
+        
+        if (toggle && sidebar) {
+            // Remove any existing listeners and add fresh ones
+            var newToggle = toggle.cloneNode(true);
+            toggle.parentNode.replaceChild(newToggle, toggle);
+            
+            newToggle.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                sidebar.classList.toggle('open');
+                if (overlay) overlay.classList.toggle('active');
+            });
+            
+            // Touch support for mobile
+            newToggle.addEventListener('touchstart', function(e) {
+                e.preventDefault();
+            }, {passive: false});
+        }
+        
+        if (overlay) {
+            overlay.addEventListener('click', function() {
+                if (sidebar) sidebar.classList.remove('open');
+                overlay.classList.remove('active');
+            });
+        }
+        
+        // Close nav when clicking nav links
+        document.querySelectorAll('.nav-link').forEach(function(link) {
+            link.addEventListener('click', function() {
+                if (sidebar) sidebar.classList.remove('open');
+                if (overlay) overlay.classList.remove('active');
+            });
+        });
+    });
+    </script>
 </body>
 </html>
