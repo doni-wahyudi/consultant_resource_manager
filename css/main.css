@@ -270,23 +270,6 @@ html, body {
         justify-content: center;
     }
     
-    .nav-sidebar {
-        position: fixed;
-        left: 0;
-        top: 0;
-        bottom: 0;
-        transform: translateX(-100%);
-        transition: transform var(--transition-normal);
-        width: 280px;
-        max-width: 85vw;
-        z-index: 200;
-    }
-    
-    .nav-sidebar.open {
-        transform: translateX(0);
-        box-shadow: var(--shadow-lg);
-    }
-    
     .nav-overlay {
         display: none;
         position: fixed;
