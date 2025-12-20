@@ -12,21 +12,21 @@
     <link rel="icon" type="image/svg+xml" href="assets/icons/favicon.svg">
     <link rel="icon" type="image/png" sizes="32x32" href="assets/icons/favicon.svg">
     <link rel="apple-touch-icon" sizes="180x180" href="assets/icons/favicon.svg">
-    <link rel="stylesheet" href="css/main.css">
-    <link rel="stylesheet" href="css/components.css">
-    <link rel="stylesheet" href="css/calendar.css">
-    <link rel="stylesheet" href="css/pages.css">
+    <link rel="stylesheet" href="css/main.css?v=2">
+    <link rel="stylesheet" href="css/components.css?v=2">
+    <link rel="stylesheet" href="css/calendar.css?v=2">
+    <link rel="stylesheet" href="css/pages.css?v=2">
     <!-- Supabase Client Library -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
+    <!-- Mobile Navigation Toggle - OUTSIDE app-container for proper stacking -->
+    <button class="nav-toggle" id="nav-toggle" aria-label="Toggle navigation" type="button">☰</button>
+    
+    <!-- Navigation Overlay (for mobile) - OUTSIDE app-container -->
+    <div class="nav-overlay" id="nav-overlay"></div>
+    
     <div class="app-container">
-        <!-- Mobile Navigation Toggle -->
-        <button class="nav-toggle" id="nav-toggle" aria-label="Toggle navigation" type="button">☰</button>
-        
-        <!-- Navigation Overlay (for mobile) -->
-        <div class="nav-overlay" id="nav-overlay"></div>
-        
         <!-- Navigation Sidebar -->
         <nav class="nav-sidebar" id="nav-sidebar">
             <div class="nav-header">
@@ -116,11 +116,11 @@
     </div>
 
     <!-- Scripts -->
-    <script src="js/config.js"></script>
-    <script src="js/services/supabase.js"></script>
-    <script src="js/services/auth.js"></script>
-    <script src="js/state.js"></script>
-    <script src="js/router.js"></script>
+    <script src="js/config.js?v=2"></script>
+    <script src="js/services/supabase.js?v=2"></script>
+    <script src="js/services/auth.js?v=2"></script>
+    <script src="js/state.js?v=2"></script>
+    <script src="js/router.js?v=2"></script>
     <script src="js/components/modal.js"></script>
     <script src="js/components/toast.js"></script>
     <script src="js/components/forms.js"></script>
@@ -146,47 +146,5 @@
     <script src="js/pages/settings.js"></script>
     <script src="js/pages/auth.js"></script>
     <script src="js/app.js"></script>
-    
-    <!-- Mobile Nav Fallback - runs after all scripts loaded -->
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        var toggle = document.getElementById('nav-toggle');
-        var sidebar = document.getElementById('nav-sidebar');
-        var overlay = document.getElementById('nav-overlay');
-        
-        if (toggle && sidebar) {
-            // Remove any existing listeners and add fresh ones
-            var newToggle = toggle.cloneNode(true);
-            toggle.parentNode.replaceChild(newToggle, toggle);
-            
-            newToggle.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                sidebar.classList.toggle('open');
-                if (overlay) overlay.classList.toggle('active');
-            });
-            
-            // Touch support for mobile
-            newToggle.addEventListener('touchstart', function(e) {
-                e.preventDefault();
-            }, {passive: false});
-        }
-        
-        if (overlay) {
-            overlay.addEventListener('click', function() {
-                if (sidebar) sidebar.classList.remove('open');
-                overlay.classList.remove('active');
-            });
-        }
-        
-        // Close nav when clicking nav links
-        document.querySelectorAll('.nav-link').forEach(function(link) {
-            link.addEventListener('click', function() {
-                if (sidebar) sidebar.classList.remove('open');
-                if (overlay) overlay.classList.remove('active');
-            });
-        });
-    });
-    </script>
 </body>
 </html>
