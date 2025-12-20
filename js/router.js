@@ -194,25 +194,48 @@ const Router = {
         const navSidebar = document.getElementById('nav-sidebar');
         const navOverlay = document.getElementById('nav-overlay');
         
-        if (navToggle && navSidebar && navOverlay) {
+        console.log('Setting up mobile nav:', { navToggle, navSidebar, navOverlay });
+        
+        if (navToggle && navSidebar) {
+            // Remove any existing listeners by cloning
+            const newNavToggle = navToggle.cloneNode(true);
+            navToggle.parentNode.replaceChild(newNavToggle, navToggle);
+            
             // Toggle navigation on button click
-            navToggle.addEventListener('click', () => {
+            newNavToggle.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Nav toggle clicked');
                 navSidebar.classList.toggle('open');
-                navOverlay.classList.toggle('active');
+                if (navOverlay) {
+                    navOverlay.classList.toggle('active');
+                }
             });
             
+            // Also add touchend for mobile
+            newNavToggle.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                console.log('Nav toggle touched');
+                navSidebar.classList.toggle('open');
+                if (navOverlay) {
+                    navOverlay.classList.toggle('active');
+                }
+            });
+        }
+        
+        if (navOverlay) {
             // Close navigation when clicking overlay
             navOverlay.addEventListener('click', () => {
                 this.closeMobileNav();
             });
-            
-            // Close navigation when pressing Escape key
-            document.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape' && navSidebar.classList.contains('open')) {
-                    this.closeMobileNav();
-                }
-            });
         }
+        
+        // Close navigation when pressing Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && navSidebar && navSidebar.classList.contains('open')) {
+                this.closeMobileNav();
+            }
+        });
     },
     
     /**
