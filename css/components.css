@@ -19,10 +19,16 @@
     .nav-sidebar {
         width: 280px;
         max-width: 85vw;
-        transform: translateX(-100%);
+        transform: translateX(-100%) !important;
         transition: transform 0.3s ease;
         z-index: 9500;
         box-shadow: none;
+        position: fixed !important;
+        left: 0 !important;
+        top: 0 !important;
+        bottom: 0 !important;
+        height: 100vh !important;
+        height: 100dvh !important;
     }
     
     .nav-sidebar.open {

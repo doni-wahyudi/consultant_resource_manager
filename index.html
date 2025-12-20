@@ -12,16 +12,16 @@
     <link rel="icon" type="image/svg+xml" href="assets/icons/favicon.svg">
     <link rel="icon" type="image/png" sizes="32x32" href="assets/icons/favicon.svg">
     <link rel="apple-touch-icon" sizes="180x180" href="assets/icons/favicon.svg">
-    <link rel="stylesheet" href="css/main.css?v=3">
-    <link rel="stylesheet" href="css/components.css?v=3">
-    <link rel="stylesheet" href="css/calendar.css?v=3">
-    <link rel="stylesheet" href="css/pages.css?v=3">
+    <link rel="stylesheet" href="css/main.css?v=5">
+    <link rel="stylesheet" href="css/components.css?v=5">
+    <link rel="stylesheet" href="css/calendar.css?v=5">
+    <link rel="stylesheet" href="css/pages.css?v=5">
     <!-- Supabase Client Library -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
     <!-- Mobile Navigation Toggle - OUTSIDE app-container for proper stacking -->
-    <button class="nav-toggle" id="nav-toggle" aria-label="Toggle navigation" type="button">☰</button>
+    <button class="nav-toggle" id="nav-toggle" aria-label="Toggle navigation" type="button" onclick="(function(e){e.preventDefault();e.stopPropagation();var s=document.getElementById('nav-sidebar'),o=document.getElementById('nav-overlay');if(s){s.classList.toggle('open');}if(o){o.classList.toggle('active');}return false;})(event)">☰</button>
     
     <!-- Navigation Overlay (for mobile) - OUTSIDE app-container -->
     <div class="nav-overlay" id="nav-overlay"></div>
@@ -116,11 +116,11 @@
     </div>
 
     <!-- Scripts -->
-    <script src="js/config.js?v=2"></script>
-    <script src="js/services/supabase.js?v=2"></script>
-    <script src="js/services/auth.js?v=2"></script>
-    <script src="js/state.js?v=2"></script>
-    <script src="js/router.js?v=2"></script>
+    <script src="js/config.js?v=5"></script>
+    <script src="js/services/supabase.js?v=5"></script>
+    <script src="js/services/auth.js?v=5"></script>
+    <script src="js/state.js?v=5"></script>
+    <script src="js/router.js?v=5"></script>
     <script src="js/components/modal.js"></script>
     <script src="js/components/toast.js"></script>
     <script src="js/components/forms.js"></script>
@@ -146,5 +146,92 @@
     <script src="js/pages/settings.js"></script>
     <script src="js/pages/auth.js"></script>
     <script src="js/app.js"></script>
+    
+    <!-- Mobile Navigation - Standalone handler that runs after DOM is ready -->
+    <script>
+    (function() {
+        'use strict';
+        
+        function setupMobileNav() {
+            var toggle = document.getElementById('nav-toggle');
+            var sidebar = document.getElementById('nav-sidebar');
+            var overlay = document.getElementById('nav-overlay');
+            
+            if (!toggle || !sidebar) {
+                console.warn('Mobile nav elements not found, retrying...');
+                return false;
+            }
+            
+            // Remove any existing listeners by cloning
+            var newToggle = toggle.cloneNode(true);
+            toggle.parentNode.replaceChild(newToggle, toggle);
+            toggle = newToggle;
+            
+            function toggleMenu(e) {
+                if (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+                var isOpen = sidebar.classList.contains('open');
+                if (isOpen) {
+                    sidebar.classList.remove('open');
+                    if (overlay) overlay.classList.remove('active');
+                } else {
+                    sidebar.classList.add('open');
+                    if (overlay) overlay.classList.add('active');
+                }
+                return false;
+            }
+            
+            function closeMenu() {
+                sidebar.classList.remove('open');
+                if (overlay) overlay.classList.remove('active');
+            }
+            
+            // Multiple event types for better mobile support
+            toggle.addEventListener('click', toggleMenu, { passive: false });
+            toggle.addEventListener('touchend', function(e) {
+                e.preventDefault();
+                toggleMenu(e);
+            }, { passive: false });
+            
+            // Close menu when clicking overlay
+            if (overlay) {
+                overlay.addEventListener('click', closeMenu);
+                overlay.addEventListener('touchend', function(e) {
+                    e.preventDefault();
+                    closeMenu();
+                }, { passive: false });
+            }
+            
+            // Close menu when clicking nav links
+            var navLinks = document.querySelectorAll('.nav-link');
+            for (var i = 0; i < navLinks.length; i++) {
+                navLinks[i].addEventListener('click', closeMenu);
+            }
+            
+            console.log('Mobile nav setup complete');
+            return true;
+        }
+        
+        // Run when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', setupMobileNav);
+        } else {
+            setupMobileNav();
+        }
+        
+        // Retry setup after delays to ensure everything is loaded
+        setTimeout(function() {
+            if (!document.getElementById('nav-toggle')) return;
+            setupMobileNav();
+        }, 100);
+        
+        setTimeout(function() {
+            if (!document.getElementById('nav-toggle')) return;
+            setupMobileNav();
+        }, 500);
+    })();
+    </script>
 </body>
 </html>

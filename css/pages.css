@@ -21,6 +21,10 @@
 @media (max-width: 768px) {
     .app-container {
         flex-direction: column;
+        min-height: 100vh;
+        min-height: 100dvh;
+        overflow-y: auto;
+        overflow-x: hidden;
     }
     
     .main-content {
@@ -30,6 +34,10 @@
         padding-top: 60px;
         padding-bottom: 24px;
         min-height: calc(100vh - 60px);
+        min-height: calc(100dvh - 60px);
+        overflow-y: auto;
+        overflow-x: hidden;
+        -webkit-overflow-scrolling: touch;
     }
 }
 
@@ -44,6 +52,18 @@
 
 .page-container.active {
     display: block;
+}
+
+@media (max-width: 768px) {
+    .page-container {
+        overflow-y: visible;
+        overflow-x: hidden;
+    }
+    
+    .page-container.active {
+        display: block;
+        min-height: auto;
+    }
 }
 
 @keyframes fadeIn {

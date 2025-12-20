@@ -205,9 +205,9 @@ body {
 /* Tablet: 768px - 1024px */
 /* Desktop: > 1024px */
 
-/* Mobile Navigation Toggle */
+/* Mobile Navigation Toggle - Hidden on desktop */
 .nav-toggle {
-    display: none !important;
+    display: none;
     position: fixed;
     top: 12px;
     left: 12px;
@@ -287,23 +287,38 @@ body {
     
     html {
         font-size: 15px;
+        height: auto;
     }
     
     body {
         overflow-x: hidden;
         overflow-y: auto;
         -webkit-overflow-scrolling: touch;
+        min-height: 100vh;
+        height: auto;
     }
     
     /* CRITICAL: Force show hamburger menu on mobile */
-    body:not(.auth-page) .nav-toggle,
-    .nav-toggle {
+    #nav-toggle,
+    .nav-toggle,
+    button.nav-toggle,
+    button#nav-toggle {
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
         visibility: visible !important;
         opacity: 1 !important;
         pointer-events: auto !important;
+        position: fixed !important;
+        top: 12px !important;
+        left: 12px !important;
+        z-index: 9999 !important;
+    }
+    
+    /* Hide hamburger on auth page */
+    body.auth-page #nav-toggle,
+    body.auth-page .nav-toggle {
+        display: none !important;
     }
     
     .main-content {
