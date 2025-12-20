@@ -12,6 +12,8 @@
     align-items: center;
     padding: 16px 20px;
     border-bottom: 1px solid var(--border-color);
+    flex-wrap: wrap;
+    gap: 12px;
 }
 
 .calendar-title {
@@ -31,24 +33,34 @@
     background-color: var(--bg-primary);
     cursor: pointer;
     transition: all var(--transition-fast);
+    min-height: 40px;
+    min-width: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-.calendar-nav-btn:hover {
+.calendar-nav-btn:hover,
+.calendar-nav-btn:active {
     background-color: var(--bg-tertiary);
 }
 
 .calendar-grid {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 .calendar-day-header {
-    padding: 12px;
+    padding: 12px 4px;
     text-align: center;
     font-weight: 600;
     color: var(--text-secondary);
     background-color: var(--bg-tertiary);
     border-bottom: 1px solid var(--border-color);
+    font-size: 12px;
+    min-width: 40px;
 }
 
 .calendar-day {
@@ -135,11 +147,13 @@
     display: flex;
     flex-direction: column;
     height: 100%;
+    flex-shrink: 0;
 }
 
 .talent-sidebar-header {
     padding: 16px;
     border-bottom: 1px solid var(--border-color);
+    flex-shrink: 0;
 }
 
 .talent-sidebar-title {
@@ -151,12 +165,19 @@
 .talent-filter {
     display: flex;
     gap: 8px;
+    flex-wrap: wrap;
+}
+
+.talent-filter .form-select {
+    flex: 1;
+    min-width: 100px;
 }
 
 .talent-list {
     flex: 1;
     overflow-y: auto;
     padding: 12px;
+    -webkit-overflow-scrolling: touch;
 }
 
 .talent-card {
@@ -169,9 +190,11 @@
     margin-bottom: 8px;
     cursor: grab;
     transition: all var(--transition-fast);
+    -webkit-tap-highlight-color: transparent;
 }
 
-.talent-card:hover {
+.talent-card:hover,
+.talent-card:active {
     background-color: var(--bg-tertiary);
     box-shadow: var(--shadow-sm);
 }
@@ -192,6 +215,7 @@
     justify-content: center;
     font-weight: 600;
     font-size: 14px;
+    flex-shrink: 0;
 }
 
 .talent-info {
@@ -413,4 +437,247 @@
     color: var(--text-primary);
     border-radius: 16px;
     font-size: 12px;
+}
+
+
+/* ===== CALENDAR RESPONSIVE STYLES ===== */
+
+/* Tablet */
+@media (max-width: 1024px) {
+    .calendar-header {
+        padding: 12px 16px;
+    }
+    
+    .calendar-day {
+        min-height: 80px;
+        padding: 6px;
+    }
+    
+    .talent-sidebar {
+        width: 220px;
+    }
+    
+    .talent-date-indicator {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+    }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+    .calendar-header {
+        padding: 12px;
+    }
+    
+    .calendar-title {
+        font-size: 16px;
+        flex: 1;
+    }
+    
+    .calendar-nav {
+        width: 100%;
+        justify-content: space-between;
+    }
+    
+    .calendar-nav-btn {
+        flex: 1;
+        max-width: 80px;
+    }
+    
+    .calendar-day-header {
+        padding: 8px 2px;
+        font-size: 10px;
+    }
+    
+    /* Show abbreviated day names on mobile */
+    .calendar-day-header-full {
+        display: none;
+    }
+    
+    .calendar-day-header-short {
+        display: block;
+    }
+    
+    .calendar-day {
+        min-height: 60px;
+        padding: 4px;
+    }
+    
+    .calendar-date {
+        font-size: 11px;
+    }
+    
+    .calendar-day.today .calendar-date {
+        width: 20px;
+        height: 20px;
+        font-size: 10px;
+    }
+    
+    .allocation-item {
+        font-size: 9px;
+        padding: 2px 4px;
+        margin-bottom: 2px;
+    }
+    
+    .allocation-item.project-date-marker {
+        font-size: 8px;
+        padding: 1px 4px;
+    }
+    
+    .talent-sidebar {
+        width: 100%;
+        max-height: 220px;
+        border-right: none;
+        border-bottom: 1px solid var(--border-color);
+        border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0;
+    }
+    
+    .talent-sidebar-header {
+        padding: 12px;
+    }
+    
+    .talent-sidebar-title {
+        font-size: 14px;
+        margin-bottom: 8px;
+    }
+    
+    .talent-filter .form-select {
+        padding: 8px;
+        font-size: 13px;
+    }
+    
+    .talent-list {
+        padding: 8px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    
+    .talent-card {
+        flex: 1 1 calc(50% - 4px);
+        min-width: 140px;
+        padding: 10px;
+        margin-bottom: 0;
+    }
+    
+    .talent-avatar {
+        width: 32px;
+        height: 32px;
+        font-size: 12px;
+    }
+    
+    .talent-name {
+        font-size: 13px;
+    }
+    
+    .talent-location {
+        font-size: 10px;
+    }
+    
+    .talent-status {
+        font-size: 11px;
+    }
+    
+    .talent-date-indicator {
+        padding: 6px 10px;
+        font-size: 12px;
+        margin-bottom: 8px;
+    }
+    
+    .legend-container {
+        padding: 12px;
+    }
+    
+    .legend-title {
+        font-size: 13px;
+        margin-bottom: 8px;
+    }
+    
+    .legend-items {
+        gap: 8px;
+    }
+    
+    .legend-color {
+        width: 12px;
+        height: 12px;
+    }
+    
+    .legend-label {
+        font-size: 11px;
+    }
+    
+    .project-detail-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+}
+
+/* Small Mobile */
+@media (max-width: 480px) {
+    .calendar-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .calendar-title {
+        text-align: center;
+        margin-bottom: 8px;
+    }
+    
+    .calendar-day {
+        min-height: 45px;
+        padding: 2px;
+    }
+    
+    .calendar-date {
+        font-size: 10px;
+    }
+    
+    .allocation-item {
+        font-size: 8px;
+        padding: 1px 2px;
+        border-radius: 2px;
+    }
+    
+    .talent-sidebar {
+        max-height: 180px;
+    }
+    
+    .talent-card {
+        flex: 1 1 100%;
+        padding: 8px;
+    }
+    
+    .talent-list {
+        flex-direction: column;
+    }
+    
+    .legend-container {
+        display: none; /* Hide legend on very small screens */
+    }
+}
+
+/* Landscape phone optimization */
+@media (max-width: 768px) and (orientation: landscape) {
+    .calendar-page-layout {
+        flex-direction: row;
+    }
+    
+    .talent-sidebar {
+        width: 200px;
+        max-height: none;
+        height: calc(100vh - 120px);
+        border-right: 1px solid var(--border-color);
+        border-bottom: none;
+    }
+    
+    .talent-list {
+        flex-direction: column;
+    }
+    
+    .talent-card {
+        flex: none;
+        width: 100%;
+    }
 }

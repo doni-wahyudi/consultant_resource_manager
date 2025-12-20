@@ -10,11 +10,14 @@
     display: flex;
     flex-direction: column;
     z-index: 100;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 .nav-header {
     padding: 20px;
     border-bottom: 1px solid var(--border-color);
+    flex-shrink: 0;
 }
 
 .nav-logo {
@@ -33,6 +36,7 @@
     padding: 12px;
     flex: 1;
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 .nav-item {
@@ -79,6 +83,7 @@
     justify-content: center;
     z-index: 1000;
     animation: fadeIn var(--transition-fast);
+    padding: 16px;
 }
 
 @keyframes fadeIn {
@@ -95,6 +100,8 @@
     max-height: 90vh;
     overflow: hidden;
     animation: slideUp var(--transition-normal);
+    display: flex;
+    flex-direction: column;
 }
 
 /* Modal sizes */
@@ -143,7 +150,8 @@
 .modal-body {
     padding: 20px;
     overflow-y: auto;
-    max-height: 60vh;
+    flex: 1;
+    -webkit-overflow-scrolling: touch;
 }
 
 .modal-footer {
@@ -152,6 +160,64 @@
     gap: 12px;
     padding: 16px 20px;
     border-top: 1px solid var(--border-color);
+    flex-shrink: 0;
+    flex-wrap: wrap;
+}
+
+/* Modal responsive */
+@media (max-width: 768px) {
+    .modal-overlay {
+        padding: 8px;
+        align-items: flex-end;
+    }
+    
+    .modal-content {
+        max-height: calc(100vh - 16px);
+        border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0;
+    }
+    
+    .modal-sm,
+    .modal-md,
+    .modal-lg {
+        max-width: 100%;
+    }
+    
+    .modal-header {
+        padding: 14px 16px;
+    }
+    
+    .modal-body {
+        padding: 16px;
+    }
+    
+    .modal-footer {
+        padding: 12px 16px;
+    }
+    
+    .modal-footer .btn {
+        flex: 1;
+        min-width: 100px;
+    }
+}
+
+@media (max-width: 480px) {
+    .modal-overlay {
+        padding: 0;
+    }
+    
+    .modal-content {
+        max-height: 100vh;
+        height: 100vh;
+        border-radius: 0;
+    }
+    
+    .modal-footer {
+        flex-direction: column-reverse;
+    }
+    
+    .modal-footer .btn {
+        width: 100%;
+    }
 }
 
 /* Confirmation modal */
