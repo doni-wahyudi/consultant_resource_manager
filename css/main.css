@@ -206,6 +206,14 @@ body {
 /* Desktop: > 1024px */
 
 /* Mobile Navigation Toggle - Hidden on desktop */
+/* Hidden checkbox for CSS-only mobile nav */
+.nav-checkbox {
+    display: none !important;
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
 .nav-toggle {
     display: none;
     position: fixed;
@@ -230,6 +238,11 @@ body {
     background-color: #f1f5f9;
 }
 
+.hamburger-icon {
+    display: block;
+    line-height: 1;
+}
+
 /* Nav overlay - hidden by default on all screens */
 .nav-overlay {
     display: none;
@@ -243,10 +256,7 @@ body {
     background-color: rgba(0, 0, 0, 0.5);
     z-index: 9000;
     -webkit-tap-highlight-color: transparent;
-}
-
-.nav-overlay.active {
-    display: block !important;
+    cursor: pointer;
 }
 
 /* Responsive: Large Desktop - removed max-width constraint */
@@ -301,8 +311,7 @@ body {
     /* CRITICAL: Force show hamburger menu on mobile */
     #nav-toggle,
     .nav-toggle,
-    button.nav-toggle,
-    button#nav-toggle {
+    label.nav-toggle {
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
@@ -317,8 +326,20 @@ body {
     
     /* Hide hamburger on auth page */
     body.auth-page #nav-toggle,
-    body.auth-page .nav-toggle {
+    body.auth-page .nav-toggle,
+    body.auth-page .nav-checkbox {
         display: none !important;
+    }
+    
+    /* CSS checkbox hack: show overlay when checkbox is checked */
+    .nav-checkbox:checked ~ .nav-overlay {
+        display: block !important;
+    }
+    
+    /* CSS checkbox hack: show sidebar when checkbox is checked */
+    .nav-checkbox:checked ~ .app-container .nav-sidebar {
+        transform: translateX(0) !important;
+        box-shadow: 4px 0 20px rgba(0, 0, 0, 0.15);
     }
     
     .main-content {

@@ -8,6 +8,8 @@ const Calendar = {
     container: null,
     currentMonth: new Date().getMonth(),
     currentYear: new Date().getFullYear(),
+    currentWeekStart: null,
+    viewMode: 'month', // 'month' or 'week'
     onDateClickCallback: null,
     onAllocationClickCallback: null,
     
@@ -22,32 +24,86 @@ const Calendar = {
         this.currentMonth = month;
         this.currentYear = year;
         
+        if (!this.currentWeekStart) {
+            const today = new Date();
+            const dayOfWeek = today.getDay();
+            this.currentWeekStart = new Date(today);
+            this.currentWeekStart.setDate(today.getDate() - dayOfWeek);
+        }
+        
         const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
             'July', 'August', 'September', 'October', 'November', 'December'];
+        
+        const headerTitle = this.viewMode === 'month' 
+            ? `${monthNames[month]} ${year}`
+            : this.getWeekRangeTitle();
         
         container.innerHTML = `
             <div class="calendar-container">
                 <div class="calendar-header">
-                    <h2 class="calendar-title">${monthNames[month]} ${year}</h2>
-                    <div class="calendar-nav">
-                        <button class="calendar-nav-btn" data-action="prev">&lt; Prev</button>
-                        <button class="calendar-nav-btn" data-action="today">Today</button>
-                        <button class="calendar-nav-btn" data-action="next">Next &gt;</button>
+                    <h2 class="calendar-title">${headerTitle}</h2>
+                    <div class="calendar-controls">
+                        <div class="calendar-view-toggle">
+                            <button class="view-btn ${this.viewMode === 'month' ? 'active' : ''}" data-view="month">Month</button>
+                            <button class="view-btn ${this.viewMode === 'week' ? 'active' : ''}" data-view="week">Week</button>
+                        </div>
+                        <div class="calendar-nav">
+                            <button class="calendar-nav-btn" data-action="prev">&lt;</button>
+                            <button class="calendar-nav-btn" data-action="today">Today</button>
+                            <button class="calendar-nav-btn" data-action="next">&gt;</button>
+                        </div>
                     </div>
                 </div>
-                <div class="calendar-grid">
+                <div class="calendar-grid ${this.viewMode === 'week' ? 'week-view' : ''}">
                     ${this.renderDayHeaders()}
-                    ${this.renderDays(month, year)}
+                    ${this.viewMode === 'month' ? this.renderDays(month, year) : this.renderWeekDays()}
                 </div>
             </div>
         `;
         
         this.setupNavigation();
+        this.setupViewToggle();
         this.setDropHandlers();
         this.showAllocations();
-        
-        // Subscribe to allocation changes
         this.subscribeToState();
+    },
+    
+    getWeekRangeTitle() {
+        const start = new Date(this.currentWeekStart);
+        const end = new Date(start);
+        end.setDate(start.getDate() + 6);
+        
+        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        
+        if (start.getMonth() === end.getMonth()) {
+            return `${monthNames[start.getMonth()]} ${start.getDate()} - ${end.getDate()}, ${start.getFullYear()}`;
+        } else {
+            return `${monthNames[start.getMonth()]} ${start.getDate()} - ${monthNames[end.getMonth()]} ${end.getDate()}, ${end.getFullYear()}`;
+        }
+    },
+    
+    renderWeekDays() {
+        const now = new Date();
+        const todayStr = this.formatDateLocal(now.getFullYear(), now.getMonth(), now.getDate());
+        
+        let days = [];
+        for (let i = 0; i < 7; i++) {
+            const date = new Date(this.currentWeekStart);
+            date.setDate(this.currentWeekStart.getDate() + i);
+            const dateStr = this.formatDateLocal(date.getFullYear(), date.getMonth(), date.getDate());
+            const isToday = dateStr === todayStr;
+            days.push(this.renderDay(date.getDate(), dateStr, false, isToday, true));
+        }
+        return days.join('');
+    },
+    
+    setupViewToggle() {
+        this.container.querySelectorAll('.view-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                this.viewMode = btn.dataset.view;
+                this.render(this.container);
+            });
+        });
     },
     
     /**
@@ -118,10 +174,11 @@ const Calendar = {
         return `${y}-${m}-${dd}`;
     },
     
-    renderDay(day, date, isOtherMonth, isToday = false) {
+    renderDay(day, date, isOtherMonth, isToday = false, isWeekView = false) {
         const classes = ['calendar-day'];
         if (isOtherMonth) classes.push('other-month');
         if (isToday) classes.push('today');
+        if (isWeekView) classes.push('week-day');
         
         return `
             <div class="${classes.join(' ')}" data-date="${date}">
@@ -140,12 +197,26 @@ const Calendar = {
         this.container.querySelectorAll('.calendar-nav-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 const action = btn.dataset.action;
-                if (action === 'prev') this.navigateMonth(-1);
-                else if (action === 'next') this.navigateMonth(1);
-                else if (action === 'today') {
-                    this.currentMonth = new Date().getMonth();
-                    this.currentYear = new Date().getFullYear();
+                if (this.viewMode === 'week') {
+                    if (action === 'prev') {
+                        this.currentWeekStart.setDate(this.currentWeekStart.getDate() - 7);
+                    } else if (action === 'next') {
+                        this.currentWeekStart.setDate(this.currentWeekStart.getDate() + 7);
+                    } else if (action === 'today') {
+                        const today = new Date();
+                        const dayOfWeek = today.getDay();
+                        this.currentWeekStart = new Date(today);
+                        this.currentWeekStart.setDate(today.getDate() - dayOfWeek);
+                    }
                     this.render(this.container);
+                } else {
+                    if (action === 'prev') this.navigateMonth(-1);
+                    else if (action === 'next') this.navigateMonth(1);
+                    else if (action === 'today') {
+                        this.currentMonth = new Date().getMonth();
+                        this.currentYear = new Date().getFullYear();
+                        this.render(this.container);
+                    }
                 }
             });
         });

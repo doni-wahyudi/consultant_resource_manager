@@ -117,3 +117,31 @@ CREATE INDEX IF NOT EXISTS idx_talents_email ON talents(email);
 
 -- Create policies for public access (for demo purposes)
 -- In production, you should create proper RLS policies based on authentication
+
+
+-- Activity Log table for tracking changes
+CREATE TABLE IF NOT EXISTS activity_logs (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID,
+    user_email VARCHAR(255),
+    action VARCHAR(50) NOT NULL,
+    entity_type VARCHAR(50) NOT NULL,
+    entity_id UUID,
+    entity_name VARCHAR(200),
+    details JSONB,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Index for activity log queries
+CREATE INDEX IF NOT EXISTS idx_activity_logs_created ON activity_logs(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_activity_logs_entity ON activity_logs(entity_type, entity_id);
+CREATE INDEX IF NOT EXISTS idx_activity_logs_user ON activity_logs(user_id);
+
+
+-- Enable public access to activity_logs table (run this if logs aren't being saved)
+-- Option 1: Disable RLS entirely (simpler, for demo/personal use)
+ALTER TABLE activity_logs DISABLE ROW LEVEL SECURITY;
+
+-- Option 2: Or create a policy to allow all operations (more secure for production)
+-- ALTER TABLE activity_logs ENABLE ROW LEVEL SECURITY;
+-- CREATE POLICY "Allow all operations on activity_logs" ON activity_logs FOR ALL USING (true) WITH CHECK (true);

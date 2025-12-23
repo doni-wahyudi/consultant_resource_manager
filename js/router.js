@@ -43,7 +43,7 @@ const Router = {
             'projects': { page: 'projects', render: () => ProjectsPage.render() },
             'completed': { page: 'completed', render: () => CompletedPage.render() },
             'clients': { page: 'clients', render: () => ClientsPage.render() },
-            'settings': { page: 'settings', render: () => SettingsPage.render() }
+            'settings': { page: 'settings', render: () => SettingsPage.render(), protected: true }
         };
     },
     
@@ -71,7 +71,14 @@ const Router = {
                 return;
             }
             
-            // For protected routes, check authentication
+            // For protected routes (like settings), require authentication
+            if (route.protected && !isAuthenticated) {
+                Toast.warning('Please sign in to access Settings');
+                this.navigate('login');
+                return;
+            }
+            
+            // For other routes, check global auth requirement
             if (!isAuthenticated && this.requiresAuth) {
                 this.navigate('login');
                 return;
@@ -190,32 +197,9 @@ const Router = {
      * Set up mobile navigation toggle and overlay
      */
     setupMobileNav() {
-        const navToggle = document.getElementById('nav-toggle');
-        const navSidebar = document.getElementById('nav-sidebar');
-        const navOverlay = document.getElementById('nav-overlay');
-        
-        if (navToggle && navSidebar) {
-            // Handle click/touch on hamburger button
-            navToggle.addEventListener('click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                navSidebar.classList.toggle('open');
-                if (navOverlay) {
-                    navOverlay.classList.toggle('active');
-                }
-            });
-        }
-        
-        if (navOverlay) {
-            // Close when clicking overlay
-            navOverlay.addEventListener('click', () => {
-                this.closeMobileNav();
-            });
-        }
-        
         // Close navigation when pressing Escape key
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && navSidebar && navSidebar.classList.contains('open')) {
+            if (e.key === 'Escape') {
                 this.closeMobileNav();
             }
         });
@@ -225,9 +209,14 @@ const Router = {
      * Close mobile navigation
      */
     closeMobileNav() {
+        // Support both checkbox hack and class-based approach
+        const navCheckbox = document.getElementById('nav-checkbox');
         const navSidebar = document.getElementById('nav-sidebar');
         const navOverlay = document.getElementById('nav-overlay');
         
+        if (navCheckbox) {
+            navCheckbox.checked = false;
+        }
         if (navSidebar) {
             navSidebar.classList.remove('open');
         }

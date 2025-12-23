@@ -4,20 +4,41 @@
  */
 
 const ProjectsPage = {
+    searchQuery: '',
+    filterStatus: '',
+    filterClient: '',
+    selectedProjects: new Set(),
+    
     render() {
         const container = document.getElementById('page-projects');
         
         container.innerHTML = `
             <div class="page-header">
                 <h1 class="page-title">Projects</h1>
-                <button class="btn btn-primary" id="add-project-btn">+ Add Project</button>
+                <div class="page-actions">
+                    <button class="btn btn-secondary" id="bulk-project-actions-btn" style="display:none;">Bulk Actions</button>
+                    <button class="btn btn-primary" id="add-project-btn">+ Add Project</button>
+                </div>
             </div>
             <div class="card">
+                <div class="filter-bar">
+                    <input type="text" class="form-input" id="project-search" placeholder="Search projects..." style="flex:2;">
+                    <select class="form-select" id="project-filter-status">
+                        <option value="">All Status</option>
+                        <option value="upcoming">Upcoming</option>
+                        <option value="in_progress">In Progress</option>
+                    </select>
+                    <select class="form-select" id="project-filter-client">
+                        <option value="">All Clients</option>
+                    </select>
+                    <button class="btn btn-secondary btn-sm" id="clear-project-filters-btn">Clear</button>
+                </div>
                 <div id="projects-list"></div>
             </div>
         `;
         
-        // Show loading state if data is still loading
+        this.populateFilters();
+        
         const isLoading = StateManager.getState('ui.loading');
         if (isLoading) {
             LoadingUI.showTableSkeleton('#projects-list', 5, 5);
@@ -29,14 +50,64 @@ const ProjectsPage = {
         this.subscribeToState();
     },
     
-    renderProjectsList() {
-        const container = document.getElementById('projects-list');
+    populateFilters() {
+        const clients = StateManager.getState('clients') || [];
+        const clientSelect = document.getElementById('project-filter-client');
+        if (clientSelect) {
+            clients.forEach(client => {
+                const option = document.createElement('option');
+                option.value = client.id;
+                option.textContent = client.name;
+                clientSelect.appendChild(option);
+            });
+        }
+    },
+    
+    getFilteredProjects() {
         const projects = StateManager.getState('projects') || [];
         const clients = StateManager.getState('clients') || [];
-        const talents = StateManager.getState('talents') || [];
         const activeProjects = projects.filter(p => p.status !== 'completed');
         
-        if (activeProjects.length === 0) {
+        return activeProjects.filter(project => {
+            // Search filter
+            if (this.searchQuery) {
+                const query = this.searchQuery.toLowerCase();
+                const nameMatch = project.name?.toLowerCase().includes(query);
+                const descMatch = project.description?.toLowerCase().includes(query);
+                const client = clients.find(c => c.id === project.client_id);
+                const clientMatch = client?.name?.toLowerCase().includes(query);
+                if (!nameMatch && !descMatch && !clientMatch) return false;
+            }
+            
+            // Status filter
+            if (this.filterStatus && project.status !== this.filterStatus) {
+                return false;
+            }
+            
+            // Client filter
+            if (this.filterClient && project.client_id !== this.filterClient) {
+                return false;
+            }
+            
+            return true;
+        });
+    },
+    
+    renderProjectsList() {
+        const container = document.getElementById('projects-list');
+        const projects = this.getFilteredProjects();
+        const clients = StateManager.getState('clients') || [];
+        const talents = StateManager.getState('talents') || [];
+        const allProjects = (StateManager.getState('projects') || []).filter(p => p.status !== 'completed');
+        
+        // Update bulk actions button
+        const bulkBtn = document.getElementById('bulk-project-actions-btn');
+        if (bulkBtn) {
+            bulkBtn.style.display = this.selectedProjects.size > 0 ? 'inline-flex' : 'none';
+            bulkBtn.textContent = `Bulk Actions (${this.selectedProjects.size})`;
+        }
+        
+        if (allProjects.length === 0) {
             container.innerHTML = `
                 <div class="empty-state">
                     <div class="empty-state-icon">📁</div>
@@ -47,10 +118,22 @@ const ProjectsPage = {
             return;
         }
         
+        if (projects.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">🔍</div>
+                    <h3 class="empty-state-title">No matches found</h3>
+                    <p class="empty-state-text">Try adjusting your search or filters</p>
+                </div>
+            `;
+            return;
+        }
+        
         container.innerHTML = `
             <table class="data-table">
                 <thead>
                     <tr>
+                        <th style="width:40px;"><input type="checkbox" id="select-all-projects" ${this.selectedProjects.size === projects.length && projects.length > 0 ? 'checked' : ''}></th>
                         <th>Color</th>
                         <th>Name</th>
                         <th>Client</th>
@@ -60,7 +143,7 @@ const ProjectsPage = {
                     </tr>
                 </thead>
                 <tbody>
-                    ${activeProjects.map(project => {
+                    ${projects.map(project => {
                         const client = clients.find(c => c.id === project.client_id);
                         const assignedTalents = (project.assigned_talents || [])
                             .map(tid => talents.find(t => t.id === tid)?.name)
@@ -69,7 +152,8 @@ const ProjectsPage = {
                             ? `${assignedTalents.slice(0, 2).join(', ')}${assignedTalents.length > 2 ? ` +${assignedTalents.length - 2}` : ''}`
                             : '-';
                         return `
-                            <tr>
+                            <tr class="${this.selectedProjects.has(project.id) ? 'row-selected' : ''}">
+                                <td><input type="checkbox" class="project-checkbox" data-id="${project.id}" ${this.selectedProjects.has(project.id) ? 'checked' : ''}></td>
                                 <td><div class="legend-color" style="background-color: ${project.color}"></div></td>
                                 <td>
                                     ${project.name}
@@ -97,27 +181,73 @@ const ProjectsPage = {
                     }).join('')}
                 </tbody>
             </table>
+            <div class="table-footer">
+                <span class="text-muted">Showing ${projects.length} of ${allProjects.length} active projects</span>
+            </div>
         `;
     },
     
     setupEventListeners() {
-        document.getElementById('add-project-btn').addEventListener('click', () => this.showProjectForm());
+        document.getElementById('add-project-btn').addEventListener('click', async () => {
+            if (await EditGuard.canEdit()) {
+                this.showProjectForm();
+            }
+        });
+        
+        // Search and filter listeners
+        document.getElementById('project-search')?.addEventListener('input', (e) => {
+            this.searchQuery = e.target.value;
+            this.renderProjectsList();
+        });
+        
+        document.getElementById('project-filter-status')?.addEventListener('change', (e) => {
+            this.filterStatus = e.target.value;
+            this.renderProjectsList();
+        });
+        
+        document.getElementById('project-filter-client')?.addEventListener('change', (e) => {
+            this.filterClient = e.target.value;
+            this.renderProjectsList();
+        });
+        
+        document.getElementById('clear-project-filters-btn')?.addEventListener('click', () => {
+            this.searchQuery = '';
+            this.filterStatus = '';
+            this.filterClient = '';
+            document.getElementById('project-search').value = '';
+            document.getElementById('project-filter-status').value = '';
+            document.getElementById('project-filter-client').value = '';
+            this.renderProjectsList();
+        });
+        
+        // Bulk actions
+        document.getElementById('bulk-project-actions-btn')?.addEventListener('click', async () => {
+            if (await EditGuard.canEdit()) {
+                this.showBulkActionsMenu();
+            }
+        });
         
         document.getElementById('projects-list').addEventListener('click', async (e) => {
             const action = e.target.dataset.action;
             const id = e.target.dataset.id;
             
             if (action === 'edit') {
-                const project = (StateManager.getState('projects') || []).find(p => p.id === id);
-                if (project) this.showProjectForm(project);
+                if (await EditGuard.canEdit()) {
+                    const project = (StateManager.getState('projects') || []).find(p => p.id === id);
+                    if (project) this.showProjectForm(project);
+                }
             } else if (action === 'delete') {
-                const confirmed = await Modal.confirm('Are you sure? This will also delete all allocations for this project.');
-                if (confirmed) {
-                    try {
-                        await ProjectService.delete(id);
-                        Toast.success('Project deleted');
-                    } catch (error) {
-                        Toast.error('Failed to delete project');
+                if (await EditGuard.canEdit()) {
+                    const project = (StateManager.getState('projects') || []).find(p => p.id === id);
+                    const confirmed = await Modal.confirm('Are you sure? This will also delete all allocations for this project.');
+                    if (confirmed) {
+                        try {
+                            await ProjectService.delete(id);
+                            await ActivityLogService.log('deleted', 'project', id, project?.name);
+                            Toast.success('Project deleted');
+                        } catch (error) {
+                            Toast.error('Failed to delete project');
+                        }
                     }
                 }
             }
@@ -125,14 +255,97 @@ const ProjectsPage = {
         
         document.getElementById('projects-list').addEventListener('change', async (e) => {
             if (e.target.dataset.action === 'status') {
-                try {
-                    await ProjectService.updateStatus(e.target.dataset.id, e.target.value);
-                    Toast.success('Status updated');
-                } catch (error) {
-                    Toast.error('Failed to update status');
+                if (await EditGuard.canEdit()) {
+                    const project = (StateManager.getState('projects') || []).find(p => p.id === e.target.dataset.id);
+                    try {
+                        await ProjectService.updateStatus(e.target.dataset.id, e.target.value);
+                        await ActivityLogService.log('status_changed', 'project', e.target.dataset.id, project?.name, { status: e.target.value });
+                        Toast.success('Status updated');
+                    } catch (error) {
+                        Toast.error('Failed to update status');
+                    }
+                } else {
+                    // Revert the select if not authenticated
+                    this.renderProjectsList();
                 }
+            } else if (e.target.id === 'select-all-projects') {
+                const projects = this.getFilteredProjects();
+                if (e.target.checked) {
+                    projects.forEach(p => this.selectedProjects.add(p.id));
+                } else {
+                    this.selectedProjects.clear();
+                }
+                this.renderProjectsList();
+            } else if (e.target.classList.contains('project-checkbox')) {
+                const id = e.target.dataset.id;
+                if (e.target.checked) {
+                    this.selectedProjects.add(id);
+                } else {
+                    this.selectedProjects.delete(id);
+                }
+                this.renderProjectsList();
             }
         });
+    },
+    
+    async showBulkActionsMenu() {
+        const count = this.selectedProjects.size;
+        const action = await new Promise(resolve => {
+            Modal.show({
+                title: `Bulk Actions (${count} selected)`,
+                content: `
+                    <div class="bulk-actions-list">
+                        <button class="btn btn-secondary btn-block" data-bulk="status-upcoming">Set Status: Upcoming</button>
+                        <button class="btn btn-secondary btn-block" data-bulk="status-in_progress">Set Status: In Progress</button>
+                        <button class="btn btn-secondary btn-block" data-bulk="status-completed">Set Status: Completed</button>
+                        <button class="btn btn-danger btn-block" data-bulk="delete">Delete Selected</button>
+                    </div>
+                `,
+                footer: '<button class="btn btn-secondary" data-action="cancel">Cancel</button>'
+            });
+            
+            document.querySelector('.modal-body').addEventListener('click', (e) => {
+                const bulkAction = e.target.dataset.bulk;
+                if (bulkAction) {
+                    Modal.hide();
+                    resolve(bulkAction);
+                }
+            });
+            document.querySelector('.modal-footer').addEventListener('click', (e) => {
+                if (e.target.dataset.action === 'cancel') {
+                    Modal.hide();
+                    resolve(null);
+                }
+            });
+        });
+        
+        if (!action) return;
+        
+        if (action === 'delete') {
+            const confirmed = await Modal.confirm(`Delete ${count} projects? This cannot be undone.`);
+            if (confirmed) {
+                try {
+                    for (const id of this.selectedProjects) {
+                        await ProjectService.delete(id);
+                    }
+                    this.selectedProjects.clear();
+                    Toast.success(`${count} projects deleted`);
+                } catch (error) {
+                    Toast.error('Failed to delete some projects');
+                }
+            }
+        } else if (action.startsWith('status-')) {
+            const newStatus = action.replace('status-', '');
+            try {
+                for (const id of this.selectedProjects) {
+                    await ProjectService.updateStatus(id, newStatus);
+                }
+                this.selectedProjects.clear();
+                Toast.success(`${count} projects updated`);
+            } catch (error) {
+                Toast.error('Failed to update some projects');
+            }
+        }
     },
     
     showProjectForm(project = null) {

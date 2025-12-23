@@ -55,6 +55,9 @@ const CalendarPage = {
         
         if (!talentId) return;
         
+        // Require auth for creating allocations
+        if (!(await EditGuard.canEdit())) return;
+        
         const projects = StateManager.getState('projects') || [];
         const talents = StateManager.getState('talents') || [];
         // Include both in_progress and upcoming projects for allocation
@@ -132,6 +135,9 @@ const CalendarPage = {
                         talent_id: talentId,
                         ...data
                     });
+                    const selectedProject = projects.find(p => p.id === data.project_id);
+                    await ActivityLogService.log('created', 'allocation', null, 
+                        `${talent?.name || 'Talent'} - ${selectedProject?.name || 'Project'}`);
                     Toast.success('Allocation created');
                     Calendar.showAllocations();
                     TalentSidebar.renderTalentList(); // Update availability
@@ -148,6 +154,9 @@ const CalendarPage = {
      * @param {Object} allocation - Allocation object
      */
     async handleAllocationClick(allocation) {
+        // Require auth for editing allocations
+        if (!(await EditGuard.canEdit())) return;
+        
         const projects = StateManager.getState('projects') || [];
         const talents = StateManager.getState('talents') || [];
         // Include both in_progress and upcoming projects for editing
@@ -161,7 +170,7 @@ const CalendarPage = {
         if (action === 'edit') {
             await this.editAllocation(allocation, allocatableProjects, talent);
         } else if (action === 'delete') {
-            await this.deleteAllocation(allocation);
+            await this.deleteAllocation(allocation, talent, project);
         }
     },
     
@@ -281,6 +290,9 @@ const CalendarPage = {
                 
                 try {
                     await AllocationService.update(allocation.id, data);
+                    const selectedProject = allocatableProjects.find(p => p.id === data.project_id);
+                    await ActivityLogService.log('updated', 'allocation', allocation.id, 
+                        `${talent?.name || 'Talent'} - ${selectedProject?.name || 'Project'}`);
                     Toast.success('Allocation updated');
                     Calendar.showAllocations();
                     TalentSidebar.renderTalentList();
@@ -295,8 +307,10 @@ const CalendarPage = {
     /**
      * Delete an allocation with confirmation
      * @param {Object} allocation - Allocation to delete
+     * @param {Object} talent - Talent object
+     * @param {Object} project - Project object
      */
-    async deleteAllocation(allocation) {
+    async deleteAllocation(allocation, talent, project) {
         const confirmed = await Modal.confirm(
             'Are you sure you want to delete this allocation?',
             { title: 'Delete Allocation', confirmText: 'Delete' }
@@ -305,6 +319,8 @@ const CalendarPage = {
         if (confirmed) {
             try {
                 await AllocationService.delete(allocation.id);
+                await ActivityLogService.log('deleted', 'allocation', allocation.id, 
+                    `${talent?.name || 'Talent'} - ${project?.name || 'Project'}`);
                 Toast.success('Allocation deleted');
                 Calendar.showAllocations();
                 TalentSidebar.renderTalentList();

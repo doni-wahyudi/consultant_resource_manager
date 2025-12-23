@@ -4,6 +4,8 @@
  */
 
 const ClientsPage = {
+    searchQuery: '',
+    
     render() {
         const container = document.getElementById('page-clients');
         
@@ -13,11 +15,14 @@ const ClientsPage = {
                 <button class="btn btn-primary" id="add-client-btn">+ Add Client</button>
             </div>
             <div class="card">
+                <div class="filter-bar">
+                    <input type="text" class="form-input" id="client-search" placeholder="Search by name, email, or phone..." style="flex:2;">
+                    <button class="btn btn-secondary btn-sm" id="clear-client-filters-btn">Clear</button>
+                </div>
                 <div id="clients-list"></div>
             </div>
         `;
         
-        // Show loading state if data is still loading
         const isLoading = StateManager.getState('ui.loading');
         if (isLoading) {
             LoadingUI.showTableSkeleton('#clients-list', 5, 5);
@@ -29,17 +34,43 @@ const ClientsPage = {
         this.subscribeToState();
     },
     
+    getFilteredClients() {
+        const clients = StateManager.getState('clients') || [];
+        
+        if (!this.searchQuery) return clients;
+        
+        const query = this.searchQuery.toLowerCase();
+        return clients.filter(client => {
+            const nameMatch = client.name?.toLowerCase().includes(query);
+            const emailMatch = client.contact_email?.toLowerCase().includes(query);
+            const phoneMatch = client.contact_phone?.toLowerCase().includes(query);
+            return nameMatch || emailMatch || phoneMatch;
+        });
+    },
+    
     renderClientsList() {
         const container = document.getElementById('clients-list');
-        const clients = StateManager.getState('clients') || [];
+        const clients = this.getFilteredClients();
         const projects = StateManager.getState('projects') || [];
+        const allClients = StateManager.getState('clients') || [];
         
-        if (clients.length === 0) {
+        if (allClients.length === 0) {
             container.innerHTML = `
                 <div class="empty-state">
                     <div class="empty-state-icon">🏢</div>
                     <h3 class="empty-state-title">No clients yet</h3>
                     <p class="empty-state-text">Add your first client to get started</p>
+                </div>
+            `;
+            return;
+        }
+        
+        if (clients.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">🔍</div>
+                    <h3 class="empty-state-title">No matches found</h3>
+                    <p class="empty-state-text">Try adjusting your search</p>
                 </div>
             `;
             return;
@@ -67,11 +98,30 @@ const ClientsPage = {
                     }).join('')}
                 </tbody>
             </table>
+            <div class="table-footer">
+                <span class="text-muted">Showing ${clients.length} of ${allClients.length} clients</span>
+            </div>
         `;
     },
 
     setupEventListeners() {
-        document.getElementById('add-client-btn').addEventListener('click', () => this.showClientForm());
+        document.getElementById('add-client-btn').addEventListener('click', async () => {
+            if (await EditGuard.canEdit()) {
+                this.showClientForm();
+            }
+        });
+        
+        // Search listener
+        document.getElementById('client-search')?.addEventListener('input', (e) => {
+            this.searchQuery = e.target.value;
+            this.renderClientsList();
+        });
+        
+        document.getElementById('clear-client-filters-btn')?.addEventListener('click', () => {
+            this.searchQuery = '';
+            document.getElementById('client-search').value = '';
+            this.renderClientsList();
+        });
         
         document.getElementById('clients-list').addEventListener('click', async (e) => {
             e.preventDefault();
@@ -82,16 +132,22 @@ const ClientsPage = {
                 const client = (StateManager.getState('clients') || []).find(c => c.id === id);
                 if (client) this.showClientDetails(client);
             } else if (action === 'edit') {
-                const client = (StateManager.getState('clients') || []).find(c => c.id === id);
-                if (client) this.showClientForm(client);
+                if (await EditGuard.canEdit()) {
+                    const client = (StateManager.getState('clients') || []).find(c => c.id === id);
+                    if (client) this.showClientForm(client);
+                }
             } else if (action === 'delete') {
-                const confirmed = await Modal.confirm('Are you sure you want to delete this client?');
-                if (confirmed) {
-                    try {
-                        await ClientService.delete(id);
-                        Toast.success('Client deleted');
-                    } catch (error) {
-                        Toast.error('Failed to delete client');
+                if (await EditGuard.canEdit()) {
+                    const client = (StateManager.getState('clients') || []).find(c => c.id === id);
+                    const confirmed = await Modal.confirm('Are you sure you want to delete this client?');
+                    if (confirmed) {
+                        try {
+                            await ClientService.delete(id);
+                            await ActivityLogService.log('deleted', 'client', id, client?.name);
+                            Toast.success('Client deleted');
+                        } catch (error) {
+                            Toast.error('Failed to delete client');
+                        }
                     }
                 }
             }
