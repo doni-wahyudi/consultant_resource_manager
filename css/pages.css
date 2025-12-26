@@ -26,7 +26,7 @@
         overflow-y: auto;
         overflow-x: hidden;
     }
-    
+
     .main-content {
         margin-left: 0;
         width: 100%;
@@ -59,7 +59,7 @@
         overflow-y: visible;
         overflow-x: hidden;
     }
-    
+
     .page-container.active {
         display: block;
         min-height: auto;
@@ -67,8 +67,15 @@
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* Page Header */
@@ -192,17 +199,17 @@
         margin: 0 -14px;
         padding: 0 14px;
     }
-    
+
     .data-table {
         min-width: 500px;
     }
-    
+
     .data-table th,
     .data-table td {
         padding: 10px 12px;
         font-size: 13px;
     }
-    
+
     .data-table .btn-sm {
         padding: 6px 10px;
         font-size: 11px;
@@ -279,7 +286,8 @@
     display: flex;
     flex-direction: column;
     gap: 16px;
-    min-width: 0; /* Prevent flex item overflow */
+    min-width: 0;
+    /* Prevent flex item overflow */
 }
 
 @media (max-width: 1024px) {
@@ -295,7 +303,7 @@
         min-height: auto;
         gap: 12px;
     }
-    
+
     .calendar-main {
         gap: 12px;
         min-height: auto;
@@ -569,8 +577,15 @@
 }
 
 @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.5;
+    }
 }
 
 /* ===== CARD VARIANTS ===== */
@@ -785,17 +800,17 @@
         display: block;
         min-width: auto;
     }
-    
+
     .table-responsive-cards .data-table thead {
         display: none;
     }
-    
+
     .table-responsive-cards .data-table tbody {
         display: flex;
         flex-direction: column;
         gap: 12px;
     }
-    
+
     .table-responsive-cards .data-table tr {
         display: block;
         background-color: var(--bg-primary);
@@ -804,7 +819,7 @@
         box-shadow: var(--shadow-sm);
         border: 1px solid var(--border-color);
     }
-    
+
     .table-responsive-cards .data-table td {
         display: flex;
         justify-content: space-between;
@@ -812,42 +827,42 @@
         padding: 8px 0;
         border-bottom: 1px solid var(--border-color);
     }
-    
+
     .table-responsive-cards .data-table td:last-child {
         border-bottom: none;
         padding-top: 12px;
         justify-content: flex-end;
         gap: 8px;
     }
-    
+
     .table-responsive-cards .data-table td::before {
         content: attr(data-label);
         font-weight: 500;
         color: var(--text-secondary);
         font-size: 12px;
     }
-    
+
     /* Stats row responsive */
     .stats-row {
         flex-wrap: wrap;
         gap: 16px;
     }
-    
+
     .stat-item {
         flex: 1 1 calc(50% - 8px);
         min-width: 120px;
     }
-    
+
     .stat-value {
         font-size: 20px;
     }
-    
+
     /* Filter bar responsive */
     .filter-bar {
         flex-direction: column;
         align-items: stretch;
     }
-    
+
     .filter-bar .form-input,
     .filter-bar .form-select {
         width: 100%;
@@ -1013,23 +1028,23 @@
         align-items: flex-start;
         padding-top: 40px;
     }
-    
+
     .auth-card {
         border-radius: var(--border-radius);
     }
-    
+
     .auth-form {
         padding: 24px 16px;
     }
-    
+
     .auth-header {
         padding: 24px 16px 20px;
     }
-    
+
     .auth-logo {
         font-size: 28px;
     }
-    
+
     .auth-title {
         font-size: 20px;
     }
@@ -1037,75 +1052,76 @@
 
 /* ===== ADDITIONAL MOBILE STYLES ===== */
 @media (max-width: 768px) {
+
     /* Metric cards */
     .metric-card {
         padding: 16px;
     }
-    
+
     .metric-value {
         font-size: 24px;
     }
-    
+
     .metric-label {
         font-size: 13px;
     }
-    
+
     /* Cards */
     .card {
         padding: 16px;
     }
-    
+
     .card-header {
         flex-direction: column;
         align-items: flex-start;
         gap: 12px;
     }
-    
+
     .card-header .btn {
         width: 100%;
     }
-    
+
     /* Empty state */
     .empty-state {
         padding: 32px 16px;
     }
-    
+
     .empty-state-icon {
         font-size: 36px;
     }
-    
+
     .empty-state-title {
         font-size: 16px;
     }
-    
+
     /* Tags */
     .tag-list {
         gap: 6px;
     }
-    
+
     .tag {
         padding: 4px 10px;
         font-size: 12px;
     }
-    
+
     /* Status badges */
     .status-badge {
         padding: 4px 8px;
         font-size: 11px;
     }
-    
+
     /* Talent detail */
     .talent-avatar-large {
         width: 80px;
         height: 80px;
         font-size: 32px;
     }
-    
+
     /* List items */
     .list-item {
         padding: 12px;
     }
-    
+
     .list-item-actions {
         opacity: 1;
     }
@@ -1115,15 +1131,15 @@
     .metric-card {
         padding: 14px;
     }
-    
+
     .metric-value {
         font-size: 20px;
     }
-    
+
     .card {
         padding: 12px;
     }
-    
+
     .card-title {
         font-size: 14px;
     }
@@ -1445,16 +1461,16 @@
         width: 100%;
         flex-direction: column;
     }
-    
+
     .page-actions .btn {
         width: 100%;
     }
-    
+
     .timeline-label {
         width: 60px;
         font-size: 10px;
     }
-    
+
     .timeline-month {
         font-size: 10px;
     }
@@ -1545,4 +1561,155 @@
 /* ===== MARGIN UTILITIES ===== */
 .mb-4 {
     margin-bottom: 16px;
+}
+
+/* ===== ENHANCED MOBILE STYLES ===== */
+@media (max-width: 768px) {
+
+    /* Dashboard grid - stack all cards vertically */
+    .grid-2,
+    .grid-3,
+    .grid-4 {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 16px !important;
+    }
+
+    /* Ensure all dashboard cards are visible */
+    .card {
+        display: block !important;
+        overflow: visible !important;
+    }
+
+    /* Card body should not hide content on mobile */
+    .card-body {
+        max-height: none !important;
+        overflow: visible !important;
+    }
+
+    /* Table wrapper for horizontal scroll */
+    .card .data-table {
+        display: block;
+        width: 100%;
+    }
+
+    /* Make tables scrollable horizontally */
+    .card>.data-table,
+    .card-body>.data-table,
+    #unpaid-projects .data-table,
+    #upcoming-deadlines .data-table,
+    #project-timeline .data-table,
+    #completed-list .data-table {
+        display: block;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        white-space: nowrap;
+    }
+
+    /* Horizontal scroll hint shadow */
+    .card-body:has(.data-table) {
+        position: relative;
+    }
+
+    .card-body:has(.data-table)::after {
+        content: '';
+        position: absolute;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        width: 20px;
+        background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.8));
+        pointer-events: none;
+    }
+
+    /* Ensure minimum table width for readability */
+    .data-table {
+        min-width: 500px;
+    }
+
+    /* Metrics grid - 2 columns on mobile */
+    .metrics-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 12px !important;
+    }
+
+    /* Metric cards more compact */
+    .metric-card {
+        padding: 14px;
+    }
+
+    .metric-value {
+        font-size: 24px;
+    }
+
+    .metric-icon {
+        font-size: 20px;
+    }
+
+    /* Timeline items scrollable */
+    #project-timeline,
+    #talent-utilization {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Page header adjustments */
+    .page-header {
+        padding-left: 50px;
+        /* Space for hamburger menu */
+    }
+
+    .page-title {
+        font-size: 18px;
+    }
+
+    /* Card headers */
+    .card-header {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .card-title {
+        font-size: 14px;
+    }
+
+    .card-subtitle {
+        font-size: 11px;
+    }
+}
+
+/* Small mobile specific */
+@media (max-width: 480px) {
+
+    /* Single column metrics on very small screens */
+    .metrics-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .metric-card {
+        padding: 12px;
+    }
+
+    .metric-value {
+        font-size: 20px;
+    }
+
+    /* Even more compact tables */
+    .data-table th,
+    .data-table td {
+        padding: 8px 10px;
+        font-size: 12px;
+    }
+
+    /* Page content spacing */
+    .main-content {
+        padding: 12px;
+        padding-top: 56px;
+    }
+
+    /* Full width cards */
+    .card {
+        margin: 0 -4px;
+        border-radius: 8px;
+    }
 }
