@@ -6,6 +6,8 @@
 
 const DashboardPage = {
     unsubscribers: [],
+    unpaidSortField: 'name',
+    unpaidSortOrder: 'asc',
 
     render() {
         const container = document.getElementById('page-dashboard');
@@ -44,6 +46,17 @@ const DashboardPage = {
                         <h3 class="card-title">Unpaid Projects</h3>
                         <span class="card-subtitle" id="unpaid-count"></span>
                     </div>
+                    <div class="card-body-header">
+                        <select id="unpaid-sort-field" class="form-select form-select-sm">
+                            <option value="name">Name</option>
+                            <option value="date">Date</option>
+                            <option value="days">Days</option>
+                        </select>
+                        <select id="unpaid-sort-order" class="form-select form-select-sm">
+                            <option value="asc">Asc</option>
+                            <option value="desc">Desc</option>
+                        </select>
+                    </div>
                     <div id="unpaid-projects" class="card-body"></div>
                 </div>
             </div>
@@ -55,7 +68,44 @@ const DashboardPage = {
         this.renderTalentUtilization();
         this.renderUpcomingDeadlines();
         this.renderUnpaidProjects();
+        this.setupUnpaidSortListeners();
         this.subscribeToState();
+    },
+
+    setupUnpaidSortListeners() {
+        document.getElementById('unpaid-sort-field')?.addEventListener('change', (e) => {
+            this.unpaidSortField = e.target.value;
+            this.renderUnpaidProjects();
+        });
+
+        document.getElementById('unpaid-sort-order')?.addEventListener('change', (e) => {
+            this.unpaidSortOrder = e.target.value;
+            this.renderUnpaidProjects();
+        });
+    },
+
+    sortUnpaidProjects(projects) {
+        return [...projects].sort((a, b) => {
+            let comparison = 0;
+
+            switch (this.unpaidSortField) {
+                case 'name':
+                    comparison = (a.name || '').localeCompare(b.name || '');
+                    break;
+                case 'date':
+                    const dateA = a.start_date || '';
+                    const dateB = b.start_date || '';
+                    comparison = dateA.localeCompare(dateB);
+                    break;
+                case 'days':
+                    const daysA = this.calculateProjectTotalDays(a) || 0;
+                    const daysB = this.calculateProjectTotalDays(b) || 0;
+                    comparison = daysA - daysB;
+                    break;
+            }
+
+            return this.unpaidSortOrder === 'desc' ? -comparison : comparison;
+        });
     },
 
     showLoadingStates() {
@@ -336,6 +386,9 @@ const DashboardPage = {
 
         const clients = StateManager.getState('clients') || [];
 
+        // Sort projects
+        const sortedProjects = this.sortUnpaidProjects(summary.projects);
+
         container.innerHTML = `
             <table class="data-table">
                 <thead>
@@ -349,7 +402,7 @@ const DashboardPage = {
                     </tr>
                 </thead>
                 <tbody>
-                    ${summary.projects.map(p => {
+                    ${sortedProjects.map(p => {
             const client = clients.find(c => c.id === p.client_id);
             const assignedTalents = (p.assigned_talents || [])
                 .map(tid => talents.find(t => t.id === tid)?.name)

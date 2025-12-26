@@ -1217,3 +1217,37 @@
     margin-bottom: 4px;
     display: block;
 }
+
+/* Header controls for sort/filter */
+.header-controls {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.card-body-header {
+    display: flex;
+    gap: 8px;
+    padding: 8px 16px;
+    border-bottom: 1px solid var(--border-color);
+    background-color: var(--bg-secondary);
+}
+
+.form-select-sm {
+    padding: 4px 8px;
+    font-size: 12px;
+    min-width: 80px;
+}
+
+@media (max-width: 768px) {
+    .header-controls {
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .header-controls .form-select {
+        flex: 1;
+        min-width: 100px;
+    }
+}

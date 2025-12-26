@@ -4,22 +4,40 @@
  */
 
 const CompletedPage = {
+    sortField: 'name',
+    sortOrder: 'asc',
+
     render() {
         const container = document.getElementById('page-completed');
 
         container.innerHTML = `
             <div class="page-header">
                 <h1 class="page-title">Completed Projects</h1>
-                <select id="payment-filter" class="form-select">
-                    <option value="">All</option>
-                    <option value="paid">Paid</option>
-                    <option value="unpaid" selected>Unpaid</option>
-                </select>
+                <div class="header-controls">
+                    <select id="payment-filter" class="form-select">
+                        <option value="">All</option>
+                        <option value="paid">Paid</option>
+                        <option value="unpaid" selected>Unpaid</option>
+                    </select>
+                    <select id="sort-field" class="form-select">
+                        <option value="name">Sort by Name</option>
+                        <option value="date">Sort by Date</option>
+                        <option value="days">Sort by Total Days</option>
+                    </select>
+                    <select id="sort-order" class="form-select">
+                        <option value="asc">Ascending</option>
+                        <option value="desc">Descending</option>
+                    </select>
+                </div>
             </div>
             <div class="card">
                 <div id="completed-list"></div>
             </div>
         `;
+
+        // Set initial sort values
+        document.getElementById('sort-field').value = this.sortField;
+        document.getElementById('sort-order').value = this.sortOrder;
 
         // Show loading state if data is still loading
         const isLoading = StateManager.getState('ui.loading');
@@ -33,6 +51,30 @@ const CompletedPage = {
         this.subscribeToState();
     },
 
+    sortProjects(projects) {
+        return [...projects].sort((a, b) => {
+            let comparison = 0;
+
+            switch (this.sortField) {
+                case 'name':
+                    comparison = (a.name || '').localeCompare(b.name || '');
+                    break;
+                case 'date':
+                    const dateA = a.start_date || '';
+                    const dateB = b.start_date || '';
+                    comparison = dateA.localeCompare(dateB);
+                    break;
+                case 'days':
+                    const daysA = this.calculateProjectTotalDays(a) || 0;
+                    const daysB = this.calculateProjectTotalDays(b) || 0;
+                    comparison = daysA - daysB;
+                    break;
+            }
+
+            return this.sortOrder === 'desc' ? -comparison : comparison;
+        });
+    },
+
     renderCompletedList() {
         const container = document.getElementById('completed-list');
         const projects = StateManager.getState('projects') || [];
@@ -43,6 +85,9 @@ const CompletedPage = {
 
         if (filter === 'paid') completed = completed.filter(p => p.is_paid);
         else if (filter === 'unpaid') completed = completed.filter(p => !p.is_paid);
+
+        // Apply sorting
+        completed = this.sortProjects(completed);
 
         if (completed.length === 0) {
             container.innerHTML = `
@@ -172,6 +217,16 @@ const CompletedPage = {
 
     setupEventListeners() {
         document.getElementById('payment-filter').addEventListener('change', () => this.renderCompletedList());
+
+        document.getElementById('sort-field').addEventListener('change', (e) => {
+            this.sortField = e.target.value;
+            this.renderCompletedList();
+        });
+
+        document.getElementById('sort-order').addEventListener('change', (e) => {
+            this.sortOrder = e.target.value;
+            this.renderCompletedList();
+        });
 
         document.getElementById('completed-list').addEventListener('click', async (e) => {
             const action = e.target.dataset.action;

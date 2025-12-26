@@ -1713,3 +1713,92 @@
         border-radius: 8px;
     }
 }
+
+/* ===== MOBILE TOUCH & SCROLL FIXES ===== */
+@media (max-width: 768px) {
+
+    /* Ensure all interactive elements are touchable */
+    button,
+    .btn,
+    select,
+    input,
+    a,
+    [data-action] {
+        -webkit-tap-highlight-color: rgba(79, 70, 229, 0.2);
+        touch-action: manipulation;
+        cursor: pointer;
+    }
+
+    /* Minimum touch target size */
+    .btn,
+    .btn-sm,
+    .form-select,
+    .form-input {
+        min-height: 44px;
+    }
+
+    .btn-sm {
+        min-height: 36px;
+        padding: 8px 12px;
+    }
+
+    /* Ensure scrollable containers work */
+    .card-body {
+        overflow: visible;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Table scroll container */
+    .table-scroll-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        touch-action: pan-x pan-y;
+    }
+
+    /* Calendar scroll fix */
+    .calendar-scroll-wrapper {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        touch-action: pan-x pan-y;
+    }
+
+    /* Prevent body scroll lock */
+    body {
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Fix z-index for modals */
+    .modal-overlay {
+        z-index: 1000;
+    }
+
+    .modal-content {
+        z-index: 1001;
+    }
+
+    /* Ensure nav doesn't block touches when closed */
+    .main-nav:not(.mobile-open) {
+        pointer-events: none;
+    }
+
+    .main-nav.mobile-open {
+        pointer-events: auto;
+    }
+
+    .nav-content {
+        pointer-events: auto;
+    }
+
+    /* Make sure action buttons are touchable */
+    .actions-cell .btn {
+        margin: 2px;
+    }
+
+    /* Card body scrollable tables */
+    .card-body .data-table {
+        display: block;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+}
