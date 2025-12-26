@@ -6,21 +6,21 @@
 const CompletedPage = {
     render() {
         const container = document.getElementById('page-completed');
-        
+
         container.innerHTML = `
             <div class="page-header">
                 <h1 class="page-title">Completed Projects</h1>
                 <select id="payment-filter" class="form-select">
                     <option value="">All</option>
                     <option value="paid">Paid</option>
-                    <option value="unpaid">Unpaid</option>
+                    <option value="unpaid" selected>Unpaid</option>
                 </select>
             </div>
             <div class="card">
                 <div id="completed-list"></div>
             </div>
         `;
-        
+
         // Show loading state if data is still loading
         const isLoading = StateManager.getState('ui.loading');
         if (isLoading) {
@@ -28,22 +28,22 @@ const CompletedPage = {
         } else {
             this.renderCompletedList();
         }
-        
+
         this.setupEventListeners();
         this.subscribeToState();
     },
-    
+
     renderCompletedList() {
         const container = document.getElementById('completed-list');
         const projects = StateManager.getState('projects') || [];
         const talents = StateManager.getState('talents') || [];
         const filter = document.getElementById('payment-filter')?.value;
-        
+
         let completed = projects.filter(p => p.status === 'completed');
-        
+
         if (filter === 'paid') completed = completed.filter(p => p.is_paid);
         else if (filter === 'unpaid') completed = completed.filter(p => !p.is_paid);
-        
+
         if (completed.length === 0) {
             container.innerHTML = `
                 <div class="empty-state">
@@ -53,29 +53,31 @@ const CompletedPage = {
             `;
             return;
         }
-        
+
         const clients = StateManager.getState('clients') || [];
-        
+
         container.innerHTML = `
             <table class="data-table">
-                <thead><tr><th>Name</th><th>Client</th><th>Assigned Talents</th><th>Payment Details</th><th>Actions</th></tr></thead>
+                <thead><tr><th>Name</th><th>Client</th><th>Total Days</th><th>Assigned Talents</th><th>Payment Details</th><th>Actions</th></tr></thead>
                 <tbody>
                     ${completed.map(p => {
-                        const client = clients.find(c => c.id === p.client_id);
-                        const assignedTalents = (p.assigned_talents || [])
-                            .map(tid => talents.find(t => t.id === tid)?.name)
-                            .filter(Boolean);
-                        const talentDisplay = assignedTalents.length > 0 
-                            ? assignedTalents.join(', ')
-                            : '-';
-                        const hasReimbursement = p.reimbursement_amount && p.reimbursement_amount > 0;
-                        return `
+            const client = clients.find(c => c.id === p.client_id);
+            const assignedTalents = (p.assigned_talents || [])
+                .map(tid => talents.find(t => t.id === tid)?.name)
+                .filter(Boolean);
+            const talentDisplay = assignedTalents.length > 0
+                ? assignedTalents.join(', ')
+                : '-';
+            const hasReimbursement = p.reimbursement_amount && p.reimbursement_amount > 0;
+            const totalDays = this.calculateProjectTotalDays(p);
+            return `
                             <tr>
                                 <td>
                                     <span class="project-color-dot" style="background-color: ${p.color}"></span>
                                     ${p.name}
                                 </td>
                                 <td>${client?.name || '-'}</td>
+                                <td>${totalDays !== null ? totalDays + ' days' : '-'}</td>
                                 <td>${talentDisplay}</td>
                                 <td class="payment-details-cell">
                                     <div class="payment-main">
@@ -84,10 +86,10 @@ const CompletedPage = {
                                     </div>
                                     <div class="payment-sub">
                                         <span class="payment-label">Reimbursement:</span>
-                                        ${hasReimbursement 
-                                            ? `<span class="reimbursement-amount">${this.formatCurrency(p.reimbursement_amount)}</span>`
-                                            : ''
-                                        }
+                                        ${hasReimbursement
+                    ? `<span class="reimbursement-amount">${this.formatCurrency(p.reimbursement_amount)}</span>`
+                    : ''
+                }
                                         <span class="status-badge sm ${p.reimbursement_paid ? 'paid' : 'unpaid'}">${p.reimbursement_paid ? 'Paid' : 'Unpaid'}</span>
                                     </div>
                                 </td>
@@ -98,12 +100,12 @@ const CompletedPage = {
                                 </td>
                             </tr>
                         `;
-                    }).join('')}
+        }).join('')}
                 </tbody>
             </table>
         `;
     },
-    
+
     /**
      * Format currency for display
      */
@@ -116,18 +118,44 @@ const CompletedPage = {
         }).format(amount || 0);
     },
 
+    /**
+     * Calculate total days between start and end date
+     */
+    calculateTotalDays(startDate, endDate) {
+        if (!startDate || !endDate) return null;
+        const start = new Date(startDate);
+        start.setHours(0, 0, 0, 0);
+        const end = new Date(endDate);
+        end.setHours(0, 0, 0, 0);
+        return Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
+    },
+
+    /**
+     * Calculate total days for a project, using batches if available
+     */
+    calculateProjectTotalDays(project) {
+        // Use batches if available
+        if (project.batches && project.batches.length > 0) {
+            return project.batches.reduce((sum, batch) => {
+                return sum + (this.calculateTotalDays(batch.start_date, batch.end_date) || 0);
+            }, 0);
+        }
+        // Fall back to single start/end date
+        return this.calculateTotalDays(project.start_date, project.end_date);
+    },
+
     setupEventListeners() {
         document.getElementById('payment-filter').addEventListener('change', () => this.renderCompletedList());
-        
+
         document.getElementById('completed-list').addEventListener('click', async (e) => {
             const action = e.target.dataset.action;
             const id = e.target.dataset.id;
-            
+
             if (!action || !id) return;
-            
+
             const project = (StateManager.getState('projects') || []).find(p => p.id === id);
             if (!project) return;
-            
+
             if (action === 'edit') {
                 this.showEditForm(project);
             } else if (action === 'payment') {
@@ -137,13 +165,13 @@ const CompletedPage = {
             }
         });
     },
-    
+
     /**
      * Show payment details modal with project payment and reimbursement
      */
     showPaymentModal(project) {
         const hasReimbursement = project.reimbursement_amount && project.reimbursement_amount > 0;
-        
+
         Modal.show({
             title: `Payment Details - ${project.name}`,
             content: `
@@ -190,11 +218,11 @@ const CompletedPage = {
             `,
             size: 'md'
         });
-        
+
         // Track current state
         let isPaid = project.is_paid;
         let reimbursementPaid = project.reimbursement_paid || false;
-        
+
         // Toggle project payment
         document.getElementById('toggle-project-payment')?.addEventListener('click', (e) => {
             isPaid = !isPaid;
@@ -204,7 +232,7 @@ const CompletedPage = {
             badge.className = `status-badge lg ${isPaid ? 'paid' : 'unpaid'}`;
             badge.textContent = isPaid ? '✓ Paid' : '○ Unpaid';
         });
-        
+
         // Toggle reimbursement payment
         document.getElementById('toggle-reimbursement-payment')?.addEventListener('click', (e) => {
             reimbursementPaid = !reimbursementPaid;
@@ -214,17 +242,17 @@ const CompletedPage = {
             badge.className = `status-badge lg ${reimbursementPaid ? 'paid' : 'unpaid'}`;
             badge.textContent = reimbursementPaid ? '✓ Paid' : '○ Unpaid';
         });
-        
+
         // Cancel
         document.getElementById('payment-cancel-btn')?.addEventListener('click', () => Modal.hide());
-        
+
         // Save
         document.getElementById('payment-save-btn')?.addEventListener('click', async () => {
             const reimbursementAmount = parseFloat(document.getElementById('reimbursement-amount')?.value) || 0;
             const reimbursementNotes = document.getElementById('reimbursement-notes')?.value || '';
-            
+
             Modal.hide();
-            
+
             try {
                 await ProjectService.update(project.id, {
                     is_paid: isPaid,
@@ -232,7 +260,7 @@ const CompletedPage = {
                     reimbursement_paid: reimbursementPaid,
                     reimbursement_notes: reimbursementNotes
                 }, { showToast: false });
-                
+
                 Toast.success('Payment details updated');
             } catch (error) {
                 console.error('Failed to update payment:', error);
@@ -240,7 +268,7 @@ const CompletedPage = {
             }
         });
     },
-    
+
     /**
      * Show edit form for completed project
      */
@@ -249,7 +277,7 @@ const CompletedPage = {
         const talents = StateManager.getState('talents') || [];
         const currentSkills = project?.required_skills || [];
         const currentTalents = project?.assigned_talents || [];
-        
+
         const content = `
             <form id="completed-project-form" class="modal-form">
                 <div class="form-group">
@@ -269,15 +297,39 @@ const CompletedPage = {
                         `).join('')}
                     </select>
                 </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label class="form-label">Start Date</label>
-                        <input type="date" name="start_date" class="form-input" value="${project?.start_date || ''}">
+                <div class="form-group">
+                    <label class="form-label">Date Batches</label>
+                    <p class="form-hint">Add one or more date ranges for this project</p>
+                    <div class="batch-dates-container">
+                        <div id="completed-batch-dates-list" class="batch-list">
+                            ${(project?.batches || []).map(batch => `
+                                <div class="batch-item" data-batch-id="${batch.id}">
+                                    <span class="batch-dates">${this.formatBatchDate(batch.start_date)} - ${this.formatBatchDate(batch.end_date)}</span>
+                                    <span class="batch-days">(${this.calculateBatchDays(batch.start_date, batch.end_date)} days)</span>
+                                    ${batch.notes ? `<span class="batch-notes">${batch.notes}</span>` : ''}
+                                    <button type="button" class="btn-icon batch-remove" data-remove-batch="${batch.id}">&times;</button>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <div class="batch-add-form">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <input type="date" id="completed-batch-start-date" class="form-input" placeholder="Start">
+                                </div>
+                                <div class="form-group">
+                                    <input type="date" id="completed-batch-end-date" class="form-input" placeholder="End">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group" style="flex:1;">
+                                    <input type="text" id="completed-batch-notes" class="form-input" placeholder="Notes (optional)">
+                                </div>
+                                <button type="button" class="btn btn-secondary btn-sm" id="completed-add-batch-btn">+ Add Batch</button>
+                            </div>
+                        </div>
+                        <div id="completed-batch-total-days" class="batch-total"></div>
                     </div>
-                    <div class="form-group">
-                        <label class="form-label">End Date</label>
-                        <input type="date" name="end_date" class="form-input" value="${project?.end_date || ''}">
-                    </div>
+                    <input type="hidden" id="completed-batches-hidden" value='${JSON.stringify(project?.batches || [])}'>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
@@ -327,7 +379,7 @@ const CompletedPage = {
                 </div>
             </form>
         `;
-        
+
         Modal.show({
             title: 'Edit Completed Project',
             content: content,
@@ -337,18 +389,21 @@ const CompletedPage = {
                 <button type="button" class="btn btn-primary" data-action="save">Save Changes</button>
             `
         });
-        
+
         // Set up skills management
         this.setupSkillsInput(currentSkills);
-        
+
+        // Set up batch dates management
+        this.setupCompletedBatchDatesInput(project?.batches || []);
+
         // Set up form submission
         const saveBtn = document.querySelector('.modal-footer [data-action="save"]');
         const cancelBtn = document.querySelector('.modal-footer [data-action="cancel"]');
-        
+
         let isSubmitting = false;
-        
+
         cancelBtn?.addEventListener('click', () => Modal.hide());
-        
+
         saveBtn?.addEventListener('click', async () => {
             if (isSubmitting) return;
             isSubmitting = true;
@@ -357,27 +412,108 @@ const CompletedPage = {
             await this.handleEditSubmit(project);
         });
     },
-    
+
+    formatBatchDate(dateStr) {
+        if (!dateStr) return '';
+        const date = new Date(dateStr + 'T00:00:00');
+        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    },
+
+    calculateBatchDays(startDate, endDate) {
+        if (!startDate || !endDate) return 0;
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        return Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
+    },
+
+    setupCompletedBatchDatesInput(initialBatches) {
+        let batches = [...initialBatches];
+
+        const updateBatchDisplay = () => {
+            const container = document.getElementById('completed-batch-dates-list');
+            const hidden = document.getElementById('completed-batches-hidden');
+            const totalEl = document.getElementById('completed-batch-total-days');
+
+            container.innerHTML = batches.map(batch => `
+                <div class="batch-item" data-batch-id="${batch.id}">
+                    <span class="batch-dates">${this.formatBatchDate(batch.start_date)} - ${this.formatBatchDate(batch.end_date)}</span>
+                    <span class="batch-days">(${this.calculateBatchDays(batch.start_date, batch.end_date)} days)</span>
+                    ${batch.notes ? `<span class="batch-notes">${batch.notes}</span>` : ''}
+                    <button type="button" class="btn-icon batch-remove" data-remove-batch="${batch.id}">&times;</button>
+                </div>
+            `).join('');
+
+            hidden.value = JSON.stringify(batches);
+
+            // Update total
+            const totalDays = batches.reduce((sum, b) => sum + this.calculateBatchDays(b.start_date, b.end_date), 0);
+            totalEl.textContent = totalDays > 0 ? `Total: ${totalDays} days` : '';
+        };
+
+        // Add batch button
+        document.getElementById('completed-add-batch-btn')?.addEventListener('click', () => {
+            const startDate = document.getElementById('completed-batch-start-date').value;
+            const endDate = document.getElementById('completed-batch-end-date').value;
+            const notes = document.getElementById('completed-batch-notes').value.trim();
+
+            if (!startDate || !endDate) {
+                Toast.error('Please select both start and end dates');
+                return;
+            }
+
+            if (new Date(endDate) < new Date(startDate)) {
+                Toast.error('End date must be after start date');
+                return;
+            }
+
+            batches.push({
+                id: crypto.randomUUID(),
+                start_date: startDate,
+                end_date: endDate,
+                notes: notes || null
+            });
+
+            updateBatchDisplay();
+
+            // Clear inputs
+            document.getElementById('completed-batch-start-date').value = '';
+            document.getElementById('completed-batch-end-date').value = '';
+            document.getElementById('completed-batch-notes').value = '';
+        });
+
+        // Remove batch
+        document.getElementById('completed-batch-dates-list')?.addEventListener('click', (e) => {
+            const batchToRemove = e.target.dataset.removeBatch;
+            if (batchToRemove) {
+                batches = batches.filter(b => b.id !== batchToRemove);
+                updateBatchDisplay();
+            }
+        });
+
+        // Initial display update
+        updateBatchDisplay();
+    },
+
     /**
      * Set up skills input for edit form
      */
     setupSkillsInput(initialSkills) {
         let skills = [...initialSkills];
-        
+
         const updateSkillsDisplay = () => {
             const container = document.getElementById('completed-skills-tags');
             const hidden = document.getElementById('completed-skills-hidden');
-            
+
             container.innerHTML = skills.map(skill => `
                 <span class="tag" data-skill="${skill}">
                     ${skill}
                     <span class="tag-remove" data-remove-skill="${skill}">&times;</span>
                 </span>
             `).join('');
-            
+
             hidden.value = JSON.stringify(skills);
         };
-        
+
         document.getElementById('completed-add-skill-btn')?.addEventListener('click', () => {
             const input = document.getElementById('completed-skill-input');
             const skill = input.value.trim();
@@ -387,14 +523,14 @@ const CompletedPage = {
                 input.value = '';
             }
         });
-        
+
         document.getElementById('completed-skill-input')?.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 e.preventDefault();
                 document.getElementById('completed-add-skill-btn')?.click();
             }
         });
-        
+
         document.getElementById('completed-skills-tags')?.addEventListener('click', (e) => {
             const skillToRemove = e.target.dataset.removeSkill;
             if (skillToRemove) {
@@ -403,59 +539,91 @@ const CompletedPage = {
             }
         });
     },
-    
+
     /**
      * Handle edit form submission
      */
     async handleEditSubmit(existingProject) {
         const form = document.getElementById('completed-project-form');
         if (!form) return;
-        
+
         const formData = new FormData(form);
-        
+
+        // Get batches from hidden field
+        const batches = JSON.parse(document.getElementById('completed-batches-hidden')?.value || '[]');
+
+        // Calculate overall start/end date from batches for backward compatibility
+        let startDate = null;
+        let endDate = null;
+        if (batches.length > 0) {
+            startDate = batches.reduce((min, b) => !min || b.start_date < min ? b.start_date : min, null);
+            endDate = batches.reduce((max, b) => !max || b.end_date > max ? b.end_date : max, null);
+        }
+
         const data = {
             name: formData.get('name'),
             description: formData.get('description') || null,
             client_id: formData.get('client_id') || null,
-            start_date: formData.get('start_date') || null,
-            end_date: formData.get('end_date') || null,
+            start_date: startDate,
+            end_date: endDate,
             project_type: formData.get('project_type') || 'offline',
             location: formData.get('location') || null,
             required_skills: JSON.parse(document.getElementById('completed-skills-hidden')?.value || '[]')
         };
-        
+
         const selectedTalents = Array.from(document.querySelectorAll('#completed-talent-checkboxes input[name="talents"]:checked'))
             .map(cb => cb.value);
-        
+
         if (!data.name) {
             Toast.error('Project name is required');
             return;
         }
-        
+
         Modal.hide();
-        
+
         try {
             await ProjectService.update(existingProject.id, data, { showToast: false });
-            
+
             // Update talent assignments
             const currentTalents = existingProject.assigned_talents || [];
             const talentsToAdd = selectedTalents.filter(t => !currentTalents.includes(t));
             const talentsToRemove = currentTalents.filter(t => !selectedTalents.includes(t));
-            
+
             for (const talentId of talentsToAdd) {
                 await ProjectService.assignTalent(existingProject.id, talentId);
             }
             for (const talentId of talentsToRemove) {
                 await ProjectService.removeTalent(existingProject.id, talentId);
             }
-            
+
+            // Update batches - remove old ones that are no longer present
+            const existingBatches = existingProject.batches || [];
+            const newBatchIds = batches.map(b => b.id);
+            for (const batch of existingBatches) {
+                if (!newBatchIds.includes(batch.id)) {
+                    await ProjectService.removeBatch(batch.id);
+                }
+            }
+
+            // Add new batches (ones without matching existing IDs)
+            const existingBatchIds = existingBatches.map(b => b.id);
+            for (const batch of batches) {
+                if (!existingBatchIds.includes(batch.id)) {
+                    await ProjectService.addBatch(existingProject.id, {
+                        start_date: batch.start_date,
+                        end_date: batch.end_date,
+                        notes: batch.notes
+                    });
+                }
+            }
+
             Toast.success('Project updated');
         } catch (error) {
             console.error('Failed to update project:', error);
             Toast.error('Failed to update project');
         }
     },
-    
+
     /**
      * Show reactivate modal to change status back to active
      */
@@ -480,13 +648,13 @@ const CompletedPage = {
             `,
             size: 'sm'
         });
-        
+
         document.getElementById('reactivate-cancel-btn')?.addEventListener('click', () => Modal.hide());
-        
+
         document.getElementById('reactivate-confirm-btn')?.addEventListener('click', async () => {
             const newStatus = document.getElementById('reactivate-status')?.value;
             Modal.hide();
-            
+
             try {
                 await ProjectService.updateStatus(project.id, newStatus);
                 Toast.success(`Project moved to ${newStatus.replace('_', ' ')}`);
@@ -495,7 +663,7 @@ const CompletedPage = {
             }
         });
     },
-    
+
     subscribeToState() {
         StateManager.subscribe('projects', () => this.renderCompletedList());
         StateManager.subscribe('talents', () => this.renderCompletedList());

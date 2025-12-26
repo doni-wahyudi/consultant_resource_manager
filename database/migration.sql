@@ -145,3 +145,20 @@ ALTER TABLE activity_logs DISABLE ROW LEVEL SECURITY;
 -- Option 2: Or create a policy to allow all operations (more secure for production)
 -- ALTER TABLE activity_logs ENABLE ROW LEVEL SECURITY;
 -- CREATE POLICY "Allow all operations on activity_logs" ON activity_logs FOR ALL USING (true) WITH CHECK (true);
+
+-- Project Batches table for storing multiple date ranges per project
+CREATE TABLE IF NOT EXISTS project_batches (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
+    start_date DATE NOT NULL,
+    end_date DATE NOT NULL,
+    notes TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    CONSTRAINT valid_batch_date_range CHECK (end_date >= start_date)
+);
+
+-- Index for faster batch lookup by project
+CREATE INDEX IF NOT EXISTS idx_project_batches_project ON project_batches(project_id);
+
+-- Enable public access to project_batches table
+ALTER TABLE project_batches DISABLE ROW LEVEL SECURITY;

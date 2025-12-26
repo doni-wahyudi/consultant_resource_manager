@@ -6,7 +6,7 @@
 
 const ProjectService = {
     usedColors: new Set(),
-    
+
     /**
      * Get all projects
      * @returns {Promise<Array>} Projects list
@@ -15,23 +15,25 @@ const ProjectService = {
         try {
             const client = SupabaseService.getClient();
             if (!client) return StateManager.getState('projects') || [];
-            
+
+            // Fetch projects with talents and batches
             const { data, error } = await client
                 .from('projects')
-                .select('*, project_talents(talent_id)')
+                .select('*, project_talents(talent_id), project_batches(*)')
                 .order('created_at', { ascending: false });
-            
+
             if (error) throw error;
-            
-            // Transform project_talents to assigned_talents array
+
+            // Transform project_talents to assigned_talents array and include batches
             const projects = data.map(p => ({
                 ...p,
-                assigned_talents: p.project_talents?.map(pt => pt.talent_id) || []
+                assigned_talents: p.project_talents?.map(pt => pt.talent_id) || [],
+                batches: p.project_batches || []
             }));
-            
+
             // Track used colors
             this.usedColors = new Set(projects.map(p => p.color));
-            
+
             StateManager.setState('projects', projects);
             return projects;
         } catch (error) {
@@ -39,7 +41,7 @@ const ProjectService = {
             return StateManager.getState('projects') || [];
         }
     },
-    
+
     /**
      * Get project by ID
      * @param {string} id - Project ID
@@ -51,13 +53,13 @@ const ProjectService = {
             if (!client) {
                 return (StateManager.getState('projects') || []).find(p => p.id === id);
             }
-            
+
             const { data, error } = await client
                 .from('projects')
                 .select('*')
                 .eq('id', id)
                 .single();
-            
+
             if (error) throw error;
             return data;
         } catch (error) {
@@ -74,19 +76,19 @@ const ProjectService = {
      */
     async create(projectData, options = {}) {
         const { showToast = true } = options;
-        
+
         try {
             const color = this.generateColor();
             const client = SupabaseService.getClient();
-            
+
             if (!client) {
-                const newProject = { 
-                    id: crypto.randomUUID(), 
-                    ...projectData, 
+                const newProject = {
+                    id: crypto.randomUUID(),
+                    ...projectData,
                     color,
                     status: 'in_progress',
                     is_paid: false,
-                    created_at: new Date().toISOString() 
+                    created_at: new Date().toISOString()
                 };
                 const projects = [...(StateManager.getState('projects') || []), newProject];
                 StateManager.setState('projects', projects);
@@ -96,13 +98,13 @@ const ProjectService = {
                 }
                 return newProject;
             }
-            
+
             const { data, error } = await client
                 .from('projects')
                 .insert([{ ...projectData, color, status: 'in_progress', is_paid: false }])
                 .select()
                 .single();
-            
+
             if (error) throw error;
             await this.getAll();
             if (showToast && typeof Toast !== 'undefined') {
@@ -117,7 +119,7 @@ const ProjectService = {
             throw error;
         }
     },
-    
+
     /**
      * Update a project
      * @param {string} id - Project ID
@@ -127,7 +129,7 @@ const ProjectService = {
      */
     async update(id, projectData, options = {}) {
         const { showToast = true } = options;
-        
+
         try {
             const client = SupabaseService.getClient();
             if (!client) {
@@ -142,14 +144,14 @@ const ProjectService = {
                 }
                 return projects[index];
             }
-            
+
             const { data, error } = await client
                 .from('projects')
                 .update({ ...projectData, updated_at: new Date().toISOString() })
                 .eq('id', id)
                 .select()
                 .single();
-            
+
             if (error) throw error;
             await this.getAll();
             if (showToast && typeof Toast !== 'undefined') {
@@ -164,7 +166,7 @@ const ProjectService = {
             throw error;
         }
     },
-    
+
     /**
      * Delete a project
      * @param {string} id - Project ID
@@ -173,7 +175,7 @@ const ProjectService = {
      */
     async delete(id, options = {}) {
         const { showToast = true } = options;
-        
+
         try {
             const client = SupabaseService.getClient();
             if (!client) {
@@ -186,12 +188,12 @@ const ProjectService = {
                 }
                 return;
             }
-            
+
             const { error } = await client
                 .from('projects')
                 .delete()
                 .eq('id', id);
-            
+
             if (error) throw error;
             await this.getAll();
             await AllocationService.getAll();
@@ -216,7 +218,7 @@ const ProjectService = {
      */
     async updateStatus(id, status, options = {}) {
         const { showToast = true } = options;
-        
+
         try {
             const result = await this.update(id, { status }, { showToast: false });
             if (showToast && typeof Toast !== 'undefined') {
@@ -230,7 +232,7 @@ const ProjectService = {
             throw error;
         }
     },
-    
+
     /**
      * Update payment status
      * @param {string} id - Project ID
@@ -240,7 +242,7 @@ const ProjectService = {
      */
     async updatePaymentStatus(id, isPaid, options = {}) {
         const { showToast = true } = options;
-        
+
         try {
             const result = await this.update(id, { is_paid: isPaid }, { showToast: false });
             if (showToast && typeof Toast !== 'undefined') {
@@ -254,7 +256,7 @@ const ProjectService = {
             throw error;
         }
     },
-    
+
     /**
      * Get projects by status
      * @param {string} status - Status filter
@@ -264,7 +266,7 @@ const ProjectService = {
         const projects = StateManager.getState('projects') || [];
         return projects.filter(p => p.status === status);
     },
-    
+
     /**
      * Get projects by client
      * @param {string} clientId - Client ID
@@ -274,7 +276,7 @@ const ProjectService = {
         const projects = StateManager.getState('projects') || [];
         return projects.filter(p => p.client_id === clientId);
     },
-    
+
     /**
      * Assign talent to project
      * @param {string} projectId - Project ID
@@ -295,11 +297,11 @@ const ProjectService = {
                 }
                 return;
             }
-            
+
             const { error } = await client
                 .from('project_talents')
                 .insert([{ project_id: projectId, talent_id: talentId, role }]);
-            
+
             if (error && error.code !== '23505') throw error; // Ignore duplicate key error
             await this.getAll();
         } catch (error) {
@@ -307,7 +309,7 @@ const ProjectService = {
             throw error;
         }
     },
-    
+
     /**
      * Remove talent from project
      * @param {string} projectId - Project ID
@@ -327,13 +329,13 @@ const ProjectService = {
                 }
                 return;
             }
-            
+
             const { error } = await client
                 .from('project_talents')
                 .delete()
                 .eq('project_id', projectId)
                 .eq('talent_id', talentId);
-            
+
             if (error) throw error;
             await this.getAll();
         } catch (error) {
@@ -341,7 +343,7 @@ const ProjectService = {
             throw error;
         }
     },
-    
+
     /**
      * Generate unique color for project
      * @returns {string} Hex color code
@@ -354,7 +356,7 @@ const ProjectService = {
             '#be185d', '#b91c1c', '#c2410c', '#a16207', '#4d7c0f',
             '#15803d', '#0f766e', '#0e7490', '#0369a1', '#1d4ed8'
         ];
-        
+
         // Find unused color
         for (const color of colors) {
             if (!this.usedColors.has(color)) {
@@ -362,11 +364,92 @@ const ProjectService = {
                 return color;
             }
         }
-        
+
         // Generate random color if all predefined are used
         const randomColor = '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0');
         this.usedColors.add(randomColor);
         return randomColor;
+    },
+
+    /**
+     * Add a batch date range to a project
+     * @param {string} projectId - Project ID
+     * @param {Object} batch - Batch data {start_date, end_date, notes}
+     * @returns {Promise<Object>} Created batch
+     */
+    async addBatch(projectId, batch) {
+        try {
+            const client = SupabaseService.getClient();
+            if (!client) {
+                // Local state management
+                const projects = StateManager.getState('projects') || [];
+                const index = projects.findIndex(p => p.id === projectId);
+                if (index !== -1) {
+                    const newBatch = { id: crypto.randomUUID(), project_id: projectId, ...batch };
+                    projects[index].batches = [...(projects[index].batches || []), newBatch];
+                    StateManager.setState('projects', [...projects]);
+                    return newBatch;
+                }
+                return null;
+            }
+
+            const { data, error } = await client
+                .from('project_batches')
+                .insert([{ project_id: projectId, ...batch }])
+                .select()
+                .single();
+
+            if (error) throw error;
+            await this.getAll();
+            return data;
+        } catch (error) {
+            console.error('Failed to add batch:', error);
+            throw error;
+        }
+    },
+
+    /**
+     * Remove a batch from a project
+     * @param {string} batchId - Batch ID
+     * @returns {Promise<void>}
+     */
+    async removeBatch(batchId) {
+        try {
+            const client = SupabaseService.getClient();
+            if (!client) {
+                // Local state management
+                const projects = StateManager.getState('projects') || [];
+                projects.forEach(p => {
+                    if (p.batches) {
+                        p.batches = p.batches.filter(b => b.id !== batchId);
+                    }
+                });
+                StateManager.setState('projects', [...projects]);
+                return;
+            }
+
+            const { error } = await client
+                .from('project_batches')
+                .delete()
+                .eq('id', batchId);
+
+            if (error) throw error;
+            await this.getAll();
+        } catch (error) {
+            console.error('Failed to remove batch:', error);
+            throw error;
+        }
+    },
+
+    /**
+     * Get batches for a project
+     * @param {string} projectId - Project ID
+     * @returns {Array} Batches array
+     */
+    getBatches(projectId) {
+        const projects = StateManager.getState('projects') || [];
+        const project = projects.find(p => p.id === projectId);
+        return project?.batches || [];
     }
 };
 

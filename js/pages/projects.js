@@ -8,10 +8,10 @@ const ProjectsPage = {
     filterStatus: '',
     filterClient: '',
     selectedProjects: new Set(),
-    
+
     render() {
         const container = document.getElementById('page-projects');
-        
+
         container.innerHTML = `
             <div class="page-header">
                 <h1 class="page-title">Projects</h1>
@@ -36,20 +36,20 @@ const ProjectsPage = {
                 <div id="projects-list"></div>
             </div>
         `;
-        
+
         this.populateFilters();
-        
+
         const isLoading = StateManager.getState('ui.loading');
         if (isLoading) {
             LoadingUI.showTableSkeleton('#projects-list', 5, 5);
         } else {
             this.renderProjectsList();
         }
-        
+
         this.setupEventListeners();
         this.subscribeToState();
     },
-    
+
     populateFilters() {
         const clients = StateManager.getState('clients') || [];
         const clientSelect = document.getElementById('project-filter-client');
@@ -62,12 +62,12 @@ const ProjectsPage = {
             });
         }
     },
-    
+
     getFilteredProjects() {
         const projects = StateManager.getState('projects') || [];
         const clients = StateManager.getState('clients') || [];
         const activeProjects = projects.filter(p => p.status !== 'completed');
-        
+
         return activeProjects.filter(project => {
             // Search filter
             if (this.searchQuery) {
@@ -78,35 +78,35 @@ const ProjectsPage = {
                 const clientMatch = client?.name?.toLowerCase().includes(query);
                 if (!nameMatch && !descMatch && !clientMatch) return false;
             }
-            
+
             // Status filter
             if (this.filterStatus && project.status !== this.filterStatus) {
                 return false;
             }
-            
+
             // Client filter
             if (this.filterClient && project.client_id !== this.filterClient) {
                 return false;
             }
-            
+
             return true;
         });
     },
-    
+
     renderProjectsList() {
         const container = document.getElementById('projects-list');
         const projects = this.getFilteredProjects();
         const clients = StateManager.getState('clients') || [];
         const talents = StateManager.getState('talents') || [];
         const allProjects = (StateManager.getState('projects') || []).filter(p => p.status !== 'completed');
-        
+
         // Update bulk actions button
         const bulkBtn = document.getElementById('bulk-project-actions-btn');
         if (bulkBtn) {
             bulkBtn.style.display = this.selectedProjects.size > 0 ? 'inline-flex' : 'none';
             bulkBtn.textContent = `Bulk Actions (${this.selectedProjects.size})`;
         }
-        
+
         if (allProjects.length === 0) {
             container.innerHTML = `
                 <div class="empty-state">
@@ -117,7 +117,7 @@ const ProjectsPage = {
             `;
             return;
         }
-        
+
         if (projects.length === 0) {
             container.innerHTML = `
                 <div class="empty-state">
@@ -128,7 +128,7 @@ const ProjectsPage = {
             `;
             return;
         }
-        
+
         container.innerHTML = `
             <table class="data-table">
                 <thead>
@@ -144,14 +144,14 @@ const ProjectsPage = {
                 </thead>
                 <tbody>
                     ${projects.map(project => {
-                        const client = clients.find(c => c.id === project.client_id);
-                        const assignedTalents = (project.assigned_talents || [])
-                            .map(tid => talents.find(t => t.id === tid)?.name)
-                            .filter(Boolean);
-                        const talentDisplay = assignedTalents.length > 0 
-                            ? `${assignedTalents.slice(0, 2).join(', ')}${assignedTalents.length > 2 ? ` +${assignedTalents.length - 2}` : ''}`
-                            : '-';
-                        return `
+            const client = clients.find(c => c.id === project.client_id);
+            const assignedTalents = (project.assigned_talents || [])
+                .map(tid => talents.find(t => t.id === tid)?.name)
+                .filter(Boolean);
+            const talentDisplay = assignedTalents.length > 0
+                ? `${assignedTalents.slice(0, 2).join(', ')}${assignedTalents.length > 2 ? ` +${assignedTalents.length - 2}` : ''}`
+                : '-';
+            return `
                             <tr class="${this.selectedProjects.has(project.id) ? 'row-selected' : ''}">
                                 <td><input type="checkbox" class="project-checkbox" data-id="${project.id}" ${this.selectedProjects.has(project.id) ? 'checked' : ''}></td>
                                 <td><div class="legend-color" style="background-color: ${project.color}"></div></td>
@@ -178,7 +178,7 @@ const ProjectsPage = {
                                 </td>
                             </tr>
                         `;
-                    }).join('')}
+        }).join('')}
                 </tbody>
             </table>
             <div class="table-footer">
@@ -186,30 +186,30 @@ const ProjectsPage = {
             </div>
         `;
     },
-    
+
     setupEventListeners() {
         document.getElementById('add-project-btn').addEventListener('click', async () => {
             if (await EditGuard.canEdit()) {
                 this.showProjectForm();
             }
         });
-        
+
         // Search and filter listeners
         document.getElementById('project-search')?.addEventListener('input', (e) => {
             this.searchQuery = e.target.value;
             this.renderProjectsList();
         });
-        
+
         document.getElementById('project-filter-status')?.addEventListener('change', (e) => {
             this.filterStatus = e.target.value;
             this.renderProjectsList();
         });
-        
+
         document.getElementById('project-filter-client')?.addEventListener('change', (e) => {
             this.filterClient = e.target.value;
             this.renderProjectsList();
         });
-        
+
         document.getElementById('clear-project-filters-btn')?.addEventListener('click', () => {
             this.searchQuery = '';
             this.filterStatus = '';
@@ -219,18 +219,18 @@ const ProjectsPage = {
             document.getElementById('project-filter-client').value = '';
             this.renderProjectsList();
         });
-        
+
         // Bulk actions
         document.getElementById('bulk-project-actions-btn')?.addEventListener('click', async () => {
             if (await EditGuard.canEdit()) {
                 this.showBulkActionsMenu();
             }
         });
-        
+
         document.getElementById('projects-list').addEventListener('click', async (e) => {
             const action = e.target.dataset.action;
             const id = e.target.dataset.id;
-            
+
             if (action === 'edit') {
                 if (await EditGuard.canEdit()) {
                     const project = (StateManager.getState('projects') || []).find(p => p.id === id);
@@ -252,7 +252,7 @@ const ProjectsPage = {
                 }
             }
         });
-        
+
         document.getElementById('projects-list').addEventListener('change', async (e) => {
             if (e.target.dataset.action === 'status') {
                 if (await EditGuard.canEdit()) {
@@ -287,7 +287,7 @@ const ProjectsPage = {
             }
         });
     },
-    
+
     async showBulkActionsMenu() {
         const count = this.selectedProjects.size;
         const action = await new Promise(resolve => {
@@ -303,7 +303,7 @@ const ProjectsPage = {
                 `,
                 footer: '<button class="btn btn-secondary" data-action="cancel">Cancel</button>'
             });
-            
+
             document.querySelector('.modal-body').addEventListener('click', (e) => {
                 const bulkAction = e.target.dataset.bulk;
                 if (bulkAction) {
@@ -318,9 +318,9 @@ const ProjectsPage = {
                 }
             });
         });
-        
+
         if (!action) return;
-        
+
         if (action === 'delete') {
             const confirmed = await Modal.confirm(`Delete ${count} projects? This cannot be undone.`);
             if (confirmed) {
@@ -347,13 +347,13 @@ const ProjectsPage = {
             }
         }
     },
-    
+
     showProjectForm(project = null) {
         const clients = StateManager.getState('clients') || [];
         const talents = StateManager.getState('talents') || [];
         const currentSkills = project?.required_skills || [];
         const currentTalents = project?.assigned_talents || [];
-        
+
         const content = `
             <form id="project-form" class="modal-form">
                 <div class="form-group">
@@ -373,15 +373,39 @@ const ProjectsPage = {
                         `).join('')}
                     </select>
                 </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label class="form-label">Start Date</label>
-                        <input type="date" name="start_date" class="form-input" value="${project?.start_date || ''}">
+                <div class="form-group">
+                    <label class="form-label">Date Batches</label>
+                    <p class="form-hint">Add one or more date ranges for this project</p>
+                    <div class="batch-dates-container">
+                        <div id="batch-dates-list" class="batch-list">
+                            ${(project?.batches || []).map(batch => `
+                                <div class="batch-item" data-batch-id="${batch.id}">
+                                    <span class="batch-dates">${this.formatBatchDate(batch.start_date)} - ${this.formatBatchDate(batch.end_date)}</span>
+                                    <span class="batch-days">(${this.calculateBatchDays(batch.start_date, batch.end_date)} days)</span>
+                                    ${batch.notes ? `<span class="batch-notes">${batch.notes}</span>` : ''}
+                                    <button type="button" class="btn-icon batch-remove" data-remove-batch="${batch.id}">&times;</button>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <div class="batch-add-form">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <input type="date" id="batch-start-date" class="form-input" placeholder="Start">
+                                </div>
+                                <div class="form-group">
+                                    <input type="date" id="batch-end-date" class="form-input" placeholder="End">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group" style="flex:1;">
+                                    <input type="text" id="batch-notes" class="form-input" placeholder="Notes (optional)">
+                                </div>
+                                <button type="button" class="btn btn-secondary btn-sm" id="add-batch-btn">+ Add Batch</button>
+                            </div>
+                        </div>
+                        <div id="batch-total-days" class="batch-total"></div>
                     </div>
-                    <div class="form-group">
-                        <label class="form-label">End Date</label>
-                        <input type="date" name="end_date" class="form-input" value="${project?.end_date || ''}">
-                    </div>
+                    <input type="hidden" id="batches-hidden" value='${JSON.stringify(project?.batches || [])}'>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
@@ -433,7 +457,7 @@ const ProjectsPage = {
                 </div>
             </form>
         `;
-        
+
         Modal.show({
             title: project ? 'Edit Project' : 'Add Project',
             content: content,
@@ -443,19 +467,22 @@ const ProjectsPage = {
                 <button type="button" class="btn btn-primary" data-action="save">Save</button>
             `
         });
-        
+
         // Set up required skills management
         this.setupRequiredSkillsInput(currentSkills);
-        
+
+        // Set up batch dates management
+        this.setupBatchDatesInput(project?.batches || []);
+
         // Set up form submission with proper event handling
         const saveBtn = document.querySelector('.modal-footer [data-action="save"]');
         const cancelBtn = document.querySelector('.modal-footer [data-action="cancel"]');
-        
+
         // Track if submission is in progress to prevent duplicates
         let isSubmitting = false;
-        
+
         cancelBtn?.addEventListener('click', () => Modal.hide());
-        
+
         saveBtn?.addEventListener('click', async () => {
             if (isSubmitting) return; // Prevent duplicate submissions
             isSubmitting = true;
@@ -464,24 +491,105 @@ const ProjectsPage = {
             await this.handleProjectFormSubmit(project);
         });
     },
-    
+
+    formatBatchDate(dateStr) {
+        if (!dateStr) return '';
+        const date = new Date(dateStr + 'T00:00:00');
+        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    },
+
+    calculateBatchDays(startDate, endDate) {
+        if (!startDate || !endDate) return 0;
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        return Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
+    },
+
+    setupBatchDatesInput(initialBatches) {
+        let batches = [...initialBatches];
+
+        const updateBatchDisplay = () => {
+            const container = document.getElementById('batch-dates-list');
+            const hidden = document.getElementById('batches-hidden');
+            const totalEl = document.getElementById('batch-total-days');
+
+            container.innerHTML = batches.map(batch => `
+                <div class="batch-item" data-batch-id="${batch.id}">
+                    <span class="batch-dates">${this.formatBatchDate(batch.start_date)} - ${this.formatBatchDate(batch.end_date)}</span>
+                    <span class="batch-days">(${this.calculateBatchDays(batch.start_date, batch.end_date)} days)</span>
+                    ${batch.notes ? `<span class="batch-notes">${batch.notes}</span>` : ''}
+                    <button type="button" class="btn-icon batch-remove" data-remove-batch="${batch.id}">&times;</button>
+                </div>
+            `).join('');
+
+            hidden.value = JSON.stringify(batches);
+
+            // Update total
+            const totalDays = batches.reduce((sum, b) => sum + this.calculateBatchDays(b.start_date, b.end_date), 0);
+            totalEl.textContent = totalDays > 0 ? `Total: ${totalDays} days` : '';
+        };
+
+        // Add batch button
+        document.getElementById('add-batch-btn')?.addEventListener('click', () => {
+            const startDate = document.getElementById('batch-start-date').value;
+            const endDate = document.getElementById('batch-end-date').value;
+            const notes = document.getElementById('batch-notes').value.trim();
+
+            if (!startDate || !endDate) {
+                Toast.error('Please select both start and end dates');
+                return;
+            }
+
+            if (new Date(endDate) < new Date(startDate)) {
+                Toast.error('End date must be after start date');
+                return;
+            }
+
+            batches.push({
+                id: crypto.randomUUID(),
+                start_date: startDate,
+                end_date: endDate,
+                notes: notes || null
+            });
+
+            updateBatchDisplay();
+
+            // Clear inputs
+            document.getElementById('batch-start-date').value = '';
+            document.getElementById('batch-end-date').value = '';
+            document.getElementById('batch-notes').value = '';
+        });
+
+        // Remove batch
+        document.getElementById('batch-dates-list')?.addEventListener('click', (e) => {
+            const batchToRemove = e.target.dataset.removeBatch;
+            if (batchToRemove) {
+                batches = batches.filter(b => b.id !== batchToRemove);
+                updateBatchDisplay();
+            }
+        });
+
+        // Initial display update
+        updateBatchDisplay();
+    },
+
     setupRequiredSkillsInput(initialSkills) {
         let skills = [...initialSkills];
-        
+
         const updateSkillsDisplay = () => {
             const container = document.getElementById('required-skills-tags');
             const hidden = document.getElementById('required-skills-hidden');
-            
+
             container.innerHTML = skills.map(skill => `
                 <span class="tag" data-skill="${skill}">
                     ${skill}
                     <span class="tag-remove" data-remove-skill="${skill}">&times;</span>
                 </span>
             `).join('');
-            
+
             hidden.value = JSON.stringify(skills);
         };
-        
+
         // Add skill button
         document.getElementById('add-required-skill-btn')?.addEventListener('click', () => {
             const input = document.getElementById('new-required-skill-input');
@@ -492,7 +600,7 @@ const ProjectsPage = {
                 input.value = '';
             }
         });
-        
+
         // Add skill on Enter
         document.getElementById('new-required-skill-input')?.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
@@ -500,7 +608,7 @@ const ProjectsPage = {
                 document.getElementById('add-required-skill-btn')?.click();
             }
         });
-        
+
         // Remove skill
         document.getElementById('required-skills-tags')?.addEventListener('click', (e) => {
             const skillToRemove = e.target.dataset.removeSkill;
@@ -510,60 +618,92 @@ const ProjectsPage = {
             }
         });
     },
-    
+
     async handleProjectFormSubmit(existingProject) {
         const form = document.getElementById('project-form');
         if (!form) return;
-        
+
         const formData = new FormData(form);
-        
+
+        // Get batches from hidden field
+        const batches = JSON.parse(document.getElementById('batches-hidden')?.value || '[]');
+
+        // Calculate overall start/end date from batches for backward compatibility
+        let startDate = null;
+        let endDate = null;
+        if (batches.length > 0) {
+            startDate = batches.reduce((min, b) => !min || b.start_date < min ? b.start_date : min, null);
+            endDate = batches.reduce((max, b) => !max || b.end_date > max ? b.end_date : max, null);
+        }
+
         const data = {
             name: formData.get('name'),
             description: formData.get('description') || null,
             client_id: formData.get('client_id') || null,
-            start_date: formData.get('start_date') || null,
-            end_date: formData.get('end_date') || null,
+            start_date: startDate,
+            end_date: endDate,
             project_type: formData.get('project_type') || 'offline',
             location: formData.get('location') || null,
             required_skills: JSON.parse(document.getElementById('required-skills-hidden')?.value || '[]')
         };
-        
+
         // Get selected talents
         const selectedTalents = Array.from(document.querySelectorAll('input[name="talents"]:checked'))
             .map(cb => cb.value);
-        
+
         if (!data.name) {
             Toast.error('Project name is required');
             return;
         }
-        
+
         // Close modal first to prevent double submission
         Modal.hide();
-        
+
         try {
             let projectId;
-            
+
             if (existingProject) {
                 await ProjectService.update(existingProject.id, data, { showToast: false });
                 projectId = existingProject.id;
-                
+
                 // Update talent assignments
                 const currentTalents = existingProject.assigned_talents || [];
                 const talentsToAdd = selectedTalents.filter(t => !currentTalents.includes(t));
                 const talentsToRemove = currentTalents.filter(t => !selectedTalents.includes(t));
-                
+
                 for (const talentId of talentsToAdd) {
                     await ProjectService.assignTalent(projectId, talentId);
                 }
                 for (const talentId of talentsToRemove) {
                     await ProjectService.removeTalent(projectId, talentId);
                 }
-                
+
+                // Update batches - remove old ones that are no longer present
+                const existingBatches = existingProject.batches || [];
+                const newBatchIds = batches.map(b => b.id);
+                for (const batch of existingBatches) {
+                    if (!newBatchIds.includes(batch.id)) {
+                        await ProjectService.removeBatch(batch.id);
+                    }
+                }
+
+                // Add new batches (ones without matching existing IDs)
+                const existingBatchIds = existingBatches.map(b => b.id);
+                for (const batch of batches) {
+                    if (!existingBatchIds.includes(batch.id)) {
+                        await ProjectService.addBatch(projectId, {
+                            start_date: batch.start_date,
+                            end_date: batch.end_date,
+                            notes: batch.notes
+                        });
+                    }
+                }
+
                 Toast.success('Project updated');
             } else {
                 const newProject = await ProjectService.create(data, { showToast: false });
                 projectId = newProject.id;
-                
+
                 // Assign talents to new project (without calling getAll each time)
                 const client = SupabaseService.getClient();
                 if (client && selectedTalents.length > 0) {
@@ -572,8 +712,7 @@ const ProjectsPage = {
                         talent_id: talentId
                     }));
                     await client.from('project_talents').insert(insertData);
-                    await ProjectService.getAll(); // Refresh once after all inserts
-                } else {
+                } else if (!client) {
                     // Local mode - update state directly
                     const projects = StateManager.getState('projects') || [];
                     const index = projects.findIndex(p => p.id === projectId);
@@ -582,7 +721,19 @@ const ProjectsPage = {
                         StateManager.setState('projects', [...projects]);
                     }
                 }
-                
+
+                // Add batches to new project
+                for (const batch of batches) {
+                    await ProjectService.addBatch(projectId, {
+                        start_date: batch.start_date,
+                        end_date: batch.end_date,
+                        notes: batch.notes
+                    });
+                }
+
+                // Refresh to get all data
+                await ProjectService.getAll();
+
                 Toast.success('Project created');
             }
         } catch (error) {
@@ -590,7 +741,7 @@ const ProjectsPage = {
             Toast.error('Failed to save project');
         }
     },
-    
+
     subscribeToState() {
         StateManager.subscribe('projects', () => this.renderProjectsList());
         StateManager.subscribe('talents', () => this.renderProjectsList());

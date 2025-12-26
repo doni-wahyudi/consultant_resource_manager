@@ -9,7 +9,7 @@ const DashboardPage = {
 
     render() {
         const container = document.getElementById('page-dashboard');
-        
+
         container.innerHTML = `
             <div class="page-header">
                 <h1 class="page-title">Dashboard</h1>
@@ -48,7 +48,7 @@ const DashboardPage = {
                 </div>
             </div>
         `;
-        
+
         this.showLoadingStates();
         this.renderMetrics();
         this.renderProjectTimeline();
@@ -57,7 +57,7 @@ const DashboardPage = {
         this.renderUnpaidProjects();
         this.subscribeToState();
     },
-    
+
     showLoadingStates() {
         const isLoading = StateManager.getState('ui.loading');
         if (isLoading) {
@@ -68,7 +68,7 @@ const DashboardPage = {
             LoadingUI.showInline('#unpaid-projects', 'Loading projects...');
         }
     },
-    
+
     renderMetrics() {
         const container = document.getElementById('dashboard-metrics');
         if (!container) return;
@@ -77,23 +77,23 @@ const DashboardPage = {
         const projects = StateManager.getState('projects') || [];
         const clients = StateManager.getState('clients') || [];
         const allocations = StateManager.getState('allocations') || [];
-        
+
         const activeProjects = projects.filter(p => p.status === 'in_progress').length;
         const upcomingProjects = projects.filter(p => p.status === 'upcoming').length;
         const completedProjects = projects.filter(p => p.status === 'completed').length;
-        
+
         // Calculate utilization rate (talents with allocations this month / total talents)
         const now = new Date();
         const monthStart = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
         const monthEnd = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate()}`;
-        
+
         const activeTalentIds = new Set(
             allocations
                 .filter(a => a.start_date <= monthEnd && a.end_date >= monthStart)
                 .map(a => a.talent_id)
         );
         const utilizationRate = talents.length > 0 ? Math.round((activeTalentIds.size / talents.length) * 100) : 0;
-        
+
         container.innerHTML = `
             <div class="metric-card">
                 <div class="metric-icon">👥</div>
@@ -129,52 +129,52 @@ const DashboardPage = {
             </div>
         `;
     },
-    
+
     renderProjectTimeline() {
         const container = document.getElementById('project-timeline');
         if (!container) return;
-        
+
         const projects = StateManager.getState('projects') || [];
-        const activeProjects = projects.filter(p => 
-            (p.status === 'in_progress' || p.status === 'upcoming') && 
+        const activeProjects = projects.filter(p =>
+            (p.status === 'in_progress' || p.status === 'upcoming') &&
             (p.start_date || p.end_date)
         ).sort((a, b) => (a.start_date || '').localeCompare(b.start_date || ''));
-        
+
         if (activeProjects.length === 0) {
             container.innerHTML = '<p class="empty-state">No projects with dates to display</p>';
             return;
         }
-        
+
         // Get date range for timeline
         const now = new Date();
         const timelineStart = new Date(now.getFullYear(), now.getMonth(), 1);
         const timelineEnd = new Date(now.getFullYear(), now.getMonth() + 3, 0);
         const totalDays = Math.ceil((timelineEnd - timelineStart) / (1000 * 60 * 60 * 24));
-        
+
         const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-        
+
         // Generate month headers
         let monthHeaders = '';
         for (let m = 0; m < 3; m++) {
             const monthDate = new Date(now.getFullYear(), now.getMonth() + m, 1);
             monthHeaders += `<div class="timeline-month">${monthNames[monthDate.getMonth()]} ${monthDate.getFullYear()}</div>`;
         }
-        
+
         container.innerHTML = `
             <div class="project-timeline-chart">
                 <div class="timeline-header">${monthHeaders}</div>
                 <div class="timeline-body">
                     ${activeProjects.slice(0, 8).map(project => {
-                        const start = project.start_date ? new Date(project.start_date + 'T00:00:00') : timelineStart;
-                        const end = project.end_date ? new Date(project.end_date + 'T00:00:00') : timelineEnd;
-                        
-                        const startOffset = Math.max(0, Math.ceil((start - timelineStart) / (1000 * 60 * 60 * 24)));
-                        const duration = Math.min(totalDays - startOffset, Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1);
-                        
-                        const leftPercent = (startOffset / totalDays) * 100;
-                        const widthPercent = Math.max(2, (duration / totalDays) * 100);
-                        
-                        return `
+            const start = project.start_date ? new Date(project.start_date + 'T00:00:00') : timelineStart;
+            const end = project.end_date ? new Date(project.end_date + 'T00:00:00') : timelineEnd;
+
+            const startOffset = Math.max(0, Math.ceil((start - timelineStart) / (1000 * 60 * 60 * 24)));
+            const duration = Math.min(totalDays - startOffset, Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1);
+
+            const leftPercent = (startOffset / totalDays) * 100;
+            const widthPercent = Math.max(2, (duration / totalDays) * 100);
+
+            return `
                             <div class="timeline-row">
                                 <div class="timeline-label" title="${project.name}">${project.name.length > 15 ? project.name.substring(0, 15) + '...' : project.name}</div>
                                 <div class="timeline-bar-container">
@@ -182,35 +182,35 @@ const DashboardPage = {
                                 </div>
                             </div>
                         `;
-                    }).join('')}
+        }).join('')}
                 </div>
                 ${activeProjects.length > 8 ? `<p class="text-muted" style="margin-top:8px;">+${activeProjects.length - 8} more projects</p>` : ''}
             </div>
         `;
     },
-    
+
     renderTalentUtilization() {
         const container = document.getElementById('talent-utilization');
         if (!container) return;
-        
+
         const talents = StateManager.getState('talents') || [];
         const allocations = StateManager.getState('allocations') || [];
         const projects = StateManager.getState('projects') || [];
-        
+
         if (talents.length === 0) {
             container.innerHTML = '<p class="empty-state">No talents to display</p>';
             return;
         }
-        
+
         // Calculate days allocated this month for each talent
         const now = new Date();
         const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
         const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
         const daysInMonth = monthEnd.getDate();
-        
+
         const talentStats = talents.map(talent => {
             let allocatedDays = 0;
-            
+
             allocations
                 .filter(a => a.talent_id === talent.id)
                 .forEach(a => {
@@ -220,12 +220,12 @@ const DashboardPage = {
                         allocatedDays += Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
                     }
                 });
-            
+
             const utilization = Math.min(100, Math.round((allocatedDays / daysInMonth) * 100));
-            
+
             return { ...talent, allocatedDays, utilization };
         }).sort((a, b) => b.utilization - a.utilization);
-        
+
         container.innerHTML = `
             <div class="utilization-list">
                 ${talentStats.slice(0, 6).map(talent => `
@@ -243,18 +243,18 @@ const DashboardPage = {
             ${talents.length > 6 ? `<p class="text-muted" style="margin-top:8px;"><a href="#/talents">View all ${talents.length} talents →</a></p>` : ''}
         `;
     },
-    
+
     renderUpcomingDeadlines() {
         const container = document.getElementById('upcoming-deadlines');
         if (!container) return;
 
         const upcoming = DashboardService.getUpcomingDeadlines();
-        
+
         if (upcoming.length === 0) {
             container.innerHTML = '<p class="empty-state">No upcoming deadlines in the next 30 days</p>';
             return;
         }
-        
+
         container.innerHTML = `
             <table class="data-table">
                 <thead>
@@ -266,9 +266,9 @@ const DashboardPage = {
                 </thead>
                 <tbody>
                     ${upcoming.map(p => {
-                        const daysLeft = this.calculateDaysLeft(p.end_date);
-                        const urgencyClass = daysLeft <= 7 ? 'urgent' : daysLeft <= 14 ? 'warning' : '';
-                        return `
+            const daysLeft = this.calculateDaysLeft(p.end_date);
+            const urgencyClass = daysLeft <= 7 ? 'urgent' : daysLeft <= 14 ? 'warning' : '';
+            return `
                             <tr class="${urgencyClass}">
                                 <td>
                                     <span class="project-color-dot" style="background-color: ${p.color || '#ccc'}"></span>
@@ -278,7 +278,7 @@ const DashboardPage = {
                                 <td><span class="days-badge ${urgencyClass}">${daysLeft} days</span></td>
                             </tr>
                         `;
-                    }).join('')}
+        }).join('')}
                 </tbody>
             </table>
         `;
@@ -291,7 +291,30 @@ const DashboardPage = {
         end.setHours(0, 0, 0, 0);
         return Math.ceil((end - today) / (1000 * 60 * 60 * 24));
     },
-    
+
+    calculateTotalDays(startDate, endDate) {
+        if (!startDate || !endDate) return null;
+        const start = new Date(startDate);
+        start.setHours(0, 0, 0, 0);
+        const end = new Date(endDate);
+        end.setHours(0, 0, 0, 0);
+        return Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
+    },
+
+    /**
+     * Calculate total days for a project, using batches if available
+     */
+    calculateProjectTotalDays(project) {
+        // Use batches if available
+        if (project.batches && project.batches.length > 0) {
+            return project.batches.reduce((sum, batch) => {
+                return sum + (this.calculateTotalDays(batch.start_date, batch.end_date) || 0);
+            }, 0);
+        }
+        // Fall back to single start/end date
+        return this.calculateTotalDays(project.start_date, project.end_date);
+    },
+
     renderUnpaidProjects() {
         const container = document.getElementById('unpaid-projects');
         const countEl = document.getElementById('unpaid-count');
@@ -299,51 +322,54 @@ const DashboardPage = {
 
         const summary = DashboardService.getUnpaidProjectsSummary();
         const talents = StateManager.getState('talents') || [];
-        
+
         if (countEl) {
-            countEl.textContent = summary.count > 0 
+            countEl.textContent = summary.count > 0
                 ? `${summary.count} project${summary.count > 1 ? 's' : ''} pending`
                 : '';
         }
-        
+
         if (summary.count === 0) {
             container.innerHTML = '<p class="empty-state success">All completed projects are paid ✓</p>';
             return;
         }
-        
+
         const clients = StateManager.getState('clients') || [];
-        
+
         container.innerHTML = `
             <table class="data-table">
                 <thead>
                     <tr>
                         <th>Project</th>
                         <th>Client</th>
+                        <th>Total Days</th>
                         <th>Talents</th>
                         <th>Location</th>
                     </tr>
                 </thead>
                 <tbody>
                     ${summary.projects.map(p => {
-                        const client = clients.find(c => c.id === p.client_id);
-                        const assignedTalents = (p.assigned_talents || [])
-                            .map(tid => talents.find(t => t.id === tid)?.name)
-                            .filter(Boolean);
-                        const talentDisplay = assignedTalents.length > 0 
-                            ? assignedTalents.slice(0, 2).join(', ') + (assignedTalents.length > 2 ? ` +${assignedTalents.length - 2}` : '')
-                            : '-';
-                        return `
+            const client = clients.find(c => c.id === p.client_id);
+            const assignedTalents = (p.assigned_talents || [])
+                .map(tid => talents.find(t => t.id === tid)?.name)
+                .filter(Boolean);
+            const talentDisplay = assignedTalents.length > 0
+                ? assignedTalents.slice(0, 2).join(', ') + (assignedTalents.length > 2 ? ` +${assignedTalents.length - 2}` : '')
+                : '-';
+            const totalDays = this.calculateProjectTotalDays(p);
+            return `
                             <tr>
                                 <td>
                                     <span class="project-color-dot" style="background-color: ${p.color || '#ccc'}"></span>
                                     ${p.name}
                                 </td>
                                 <td>${client?.name || '-'}</td>
+                                <td>${totalDays !== null ? totalDays + ' days' : '-'}</td>
                                 <td>${talentDisplay}</td>
                                 <td>${p.location || '-'}</td>
                             </tr>
                         `;
-                    }).join('')}
+        }).join('')}
                 </tbody>
             </table>
         `;
@@ -357,7 +383,7 @@ const DashboardPage = {
             maximumFractionDigits: 0
         }).format(amount);
     },
-    
+
     subscribeToState() {
         // Clean up previous subscriptions
         this.unsubscribers.forEach(unsub => unsub());
@@ -370,7 +396,7 @@ const DashboardPage = {
                 this.renderTalentUtilization();
             })
         );
-        
+
         this.unsubscribers.push(
             StateManager.subscribe('projects', () => {
                 this.renderMetrics();
@@ -379,11 +405,11 @@ const DashboardPage = {
                 this.renderUnpaidProjects();
             })
         );
-        
+
         this.unsubscribers.push(
             StateManager.subscribe('clients', () => this.renderMetrics())
         );
-        
+
         this.unsubscribers.push(
             StateManager.subscribe('allocations', () => {
                 this.renderMetrics();
