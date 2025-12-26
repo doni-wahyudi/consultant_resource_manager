@@ -16,19 +16,20 @@ const ProjectService = {
             const client = SupabaseService.getClient();
             if (!client) return StateManager.getState('projects') || [];
 
-            // Fetch projects with talents and batches
+            // Fetch projects with talents, batches, and attachments
             const { data, error } = await client
                 .from('projects')
-                .select('*, project_talents(talent_id), project_batches(*)')
+                .select('*, project_talents(talent_id), project_batches(*), project_attachments(*)')
                 .order('created_at', { ascending: false });
 
             if (error) throw error;
 
-            // Transform project_talents to assigned_talents array and include batches
+            // Transform project_talents to assigned_talents array and include batches/attachments
             const projects = data.map(p => ({
                 ...p,
                 assigned_talents: p.project_talents?.map(pt => pt.talent_id) || [],
-                batches: p.project_batches || []
+                batches: p.project_batches || [],
+                attachments: p.project_attachments || []
             }));
 
             // Track used colors

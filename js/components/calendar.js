@@ -12,7 +12,7 @@ const Calendar = {
     viewMode: 'month', // 'month' or 'week'
     onDateClickCallback: null,
     onAllocationClickCallback: null,
-    
+
     /**
      * Render calendar for month/year
      * @param {HTMLElement} container - Container element
@@ -23,21 +23,21 @@ const Calendar = {
         this.container = container;
         this.currentMonth = month;
         this.currentYear = year;
-        
+
         if (!this.currentWeekStart) {
             const today = new Date();
             const dayOfWeek = today.getDay();
             this.currentWeekStart = new Date(today);
             this.currentWeekStart.setDate(today.getDate() - dayOfWeek);
         }
-        
+
         const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
             'July', 'August', 'September', 'October', 'November', 'December'];
-        
-        const headerTitle = this.viewMode === 'month' 
+
+        const headerTitle = this.viewMode === 'month'
             ? `${monthNames[month]} ${year}`
             : this.getWeekRangeTitle();
-        
+
         container.innerHTML = `
             <div class="calendar-container">
                 <div class="calendar-header">
@@ -54,38 +54,40 @@ const Calendar = {
                         </div>
                     </div>
                 </div>
-                <div class="calendar-grid ${this.viewMode === 'week' ? 'week-view' : ''}">
-                    ${this.renderDayHeaders()}
-                    ${this.viewMode === 'month' ? this.renderDays(month, year) : this.renderWeekDays()}
+                <div class="calendar-scroll-wrapper">
+                    <div class="calendar-grid ${this.viewMode === 'week' ? 'week-view' : ''}">
+                        ${this.renderDayHeaders()}
+                        ${this.viewMode === 'month' ? this.renderDays(month, year) : this.renderWeekDays()}
+                    </div>
                 </div>
             </div>
         `;
-        
+
         this.setupNavigation();
         this.setupViewToggle();
         this.setDropHandlers();
         this.showAllocations();
         this.subscribeToState();
     },
-    
+
     getWeekRangeTitle() {
         const start = new Date(this.currentWeekStart);
         const end = new Date(start);
         end.setDate(start.getDate() + 6);
-        
+
         const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-        
+
         if (start.getMonth() === end.getMonth()) {
             return `${monthNames[start.getMonth()]} ${start.getDate()} - ${end.getDate()}, ${start.getFullYear()}`;
         } else {
             return `${monthNames[start.getMonth()]} ${start.getDate()} - ${monthNames[end.getMonth()]} ${end.getDate()}, ${end.getFullYear()}`;
         }
     },
-    
+
     renderWeekDays() {
         const now = new Date();
         const todayStr = this.formatDateLocal(now.getFullYear(), now.getMonth(), now.getDate());
-        
+
         let days = [];
         for (let i = 0; i < 7; i++) {
             const date = new Date(this.currentWeekStart);
@@ -96,7 +98,7 @@ const Calendar = {
         }
         return days.join('');
     },
-    
+
     setupViewToggle() {
         this.container.querySelectorAll('.view-btn').forEach(btn => {
             btn.addEventListener('click', () => {
@@ -105,7 +107,7 @@ const Calendar = {
             });
         });
     },
-    
+
     /**
      * Subscribe to state changes for auto-refresh
      */
@@ -121,50 +123,50 @@ const Calendar = {
             }
         });
     },
-    
+
     renderDayHeaders() {
         const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
         return days.map(day => `<div class="calendar-day-header">${day}</div>`).join('');
     },
-    
+
     renderDays(month, year) {
         const firstDay = new Date(year, month, 1).getDay();
         const daysInMonth = new Date(year, month + 1, 0).getDate();
         const daysInPrevMonth = new Date(year, month, 0).getDate();
-        
+
         // Get today's date in local timezone (not UTC)
         const now = new Date();
         const todayYear = now.getFullYear();
         const todayMonth = now.getMonth();
         const todayDay = now.getDate();
         const todayStr = `${todayYear}-${String(todayMonth + 1).padStart(2, '0')}-${String(todayDay).padStart(2, '0')}`;
-        
+
         let days = [];
-        
+
         // Previous month days
         for (let i = firstDay - 1; i >= 0; i--) {
             const day = daysInPrevMonth - i;
             const date = this.formatDateLocal(year, month - 1, day);
             days.push(this.renderDay(day, date, true, date === todayStr));
         }
-        
+
         // Current month days
         for (let day = 1; day <= daysInMonth; day++) {
             const date = this.formatDateLocal(year, month, day);
             const isToday = date === todayStr;
             days.push(this.renderDay(day, date, false, isToday));
         }
-        
+
         // Next month days
         const remainingDays = 42 - days.length;
         for (let day = 1; day <= remainingDays; day++) {
             const date = this.formatDateLocal(year, month + 1, day);
             days.push(this.renderDay(day, date, true, date === todayStr));
         }
-        
+
         return days.join('');
     },
-    
+
     formatDateLocal(year, month, day) {
         // Handle month overflow/underflow
         const d = new Date(year, month, day);
@@ -173,13 +175,13 @@ const Calendar = {
         const dd = String(d.getDate()).padStart(2, '0');
         return `${y}-${m}-${dd}`;
     },
-    
+
     renderDay(day, date, isOtherMonth, isToday = false, isWeekView = false) {
         const classes = ['calendar-day'];
         if (isOtherMonth) classes.push('other-month');
         if (isToday) classes.push('today');
         if (isWeekView) classes.push('week-day');
-        
+
         return `
             <div class="${classes.join(' ')}" data-date="${date}">
                 <div class="calendar-date">${day}</div>
@@ -187,12 +189,12 @@ const Calendar = {
             </div>
         `;
     },
-    
+
     formatDate(year, month, day) {
         // Use local date formatting to avoid timezone issues
         return this.formatDateLocal(year, month, day);
     },
-    
+
     setupNavigation() {
         this.container.querySelectorAll('.calendar-nav-btn').forEach(btn => {
             btn.addEventListener('click', () => {
@@ -221,7 +223,7 @@ const Calendar = {
             });
         });
     },
-    
+
     navigateMonth(direction) {
         this.currentMonth += direction;
         if (this.currentMonth > 11) {
@@ -233,20 +235,20 @@ const Calendar = {
         }
         this.render(this.container);
     },
-    
+
     setDropHandlers() {
         const dayCells = this.container.querySelectorAll('.calendar-day');
-        
+
         dayCells.forEach(cell => {
             cell.addEventListener('dragover', (e) => {
                 e.preventDefault();
                 cell.classList.add('drop-target');
             });
-            
+
             cell.addEventListener('dragleave', () => {
                 cell.classList.remove('drop-target');
             });
-            
+
             cell.addEventListener('drop', (e) => {
                 e.preventDefault();
                 cell.classList.remove('drop-target');
@@ -256,12 +258,12 @@ const Calendar = {
                     this.onDateClickCallback(date, talentId);
                 }
             });
-            
+
             cell.addEventListener('click', (e) => {
                 // Skip if clicking on allocation items (they have their own handlers)
-                if (e.target.classList.contains('allocation-item') || 
+                if (e.target.classList.contains('allocation-item') ||
                     e.target.closest('.allocation-item')) return;
-                
+
                 const date = cell.dataset.date;
                 if (this.onDateClickCallback) {
                     this.onDateClickCallback(date);
@@ -269,9 +271,9 @@ const Calendar = {
             });
         });
     },
-    
+
     onProjectClickCallback: null,
-    
+
     /**
      * Display allocations and project dates on the calendar with project colors
      * Requirement: 2.3 - Show all resource allocations with project color coding
@@ -280,31 +282,31 @@ const Calendar = {
         const allocations = StateManager.getState('allocations') || [];
         const projects = StateManager.getState('projects') || [];
         const talents = StateManager.getState('talents') || [];
-        
+
         // Clear existing allocations
         this.container.querySelectorAll('.calendar-allocations').forEach(el => {
             el.innerHTML = '';
         });
-        
+
         // Get visible date range for this month
         const firstDay = new Date(this.currentYear, this.currentMonth, 1);
         const lastDay = new Date(this.currentYear, this.currentMonth + 1, 0);
-        
+
         // Show project date ranges on calendar continuously (all projects with dates)
         projects.forEach(project => {
             if (!project.start_date && !project.end_date) return;
-            
+
             const startDate = project.start_date ? new Date(project.start_date + 'T00:00:00') : null;
             const endDate = project.end_date ? new Date(project.end_date + 'T00:00:00') : null;
-            
+
             // Check if project overlaps with current month
             if (startDate && startDate > lastDay) return;
             if (endDate && endDate < firstDay) return;
-            
+
             // Determine the visible range for this project within the current month view
             const visibleStart = startDate && startDate >= firstDay ? startDate : firstDay;
             const visibleEnd = endDate && endDate <= lastDay ? endDate : lastDay;
-            
+
             // Show project bar on every day within the range
             for (let d = new Date(visibleStart); d <= visibleEnd; d.setDate(d.getDate() + 1)) {
                 const dateStr = this.formatDateLocal(d.getFullYear(), d.getMonth(), d.getDate());
@@ -315,11 +317,11 @@ const Calendar = {
                     item.style.backgroundColor = project.color;
                     item.style.opacity = '0.5';
                     item.dataset.projectId = project.id;
-                    
+
                     // Show icon on start/end dates, just color bar on middle days
                     const isStart = startDate && d.getTime() === startDate.getTime();
                     const isEnd = endDate && d.getTime() === endDate.getTime();
-                    
+
                     if (isStart && isEnd) {
                         item.textContent = `📅 ${project.name}`;
                     } else if (isStart) {
@@ -331,9 +333,9 @@ const Calendar = {
                         item.textContent = project.name.length > 8 ? project.name.substring(0, 8) + '…' : project.name;
                         item.style.opacity = '0.4';
                     }
-                    
+
                     item.title = `Project: ${project.name}\n${project.start_date || 'No start'} to ${project.end_date || 'No end'}`;
-                    
+
                     // Add click handler for project popup
                     item.addEventListener('click', (e) => {
                         e.stopPropagation();
@@ -341,28 +343,28 @@ const Calendar = {
                             this.onProjectClickCallback(project);
                         }
                     });
-                    
+
                     container.appendChild(item);
                 }
             }
         });
-        
+
         // Filter allocations that overlap with current month view
         const visibleAllocations = allocations.filter(a => {
             const start = new Date(a.start_date + 'T00:00:00');
             const end = new Date(a.end_date + 'T00:00:00');
             return start <= lastDay && end >= firstDay;
         });
-        
+
         visibleAllocations.forEach(allocation => {
             const project = projects.find(p => p.id === allocation.project_id);
             const talent = talents.find(t => t.id === allocation.talent_id);
             if (!project || !talent) return;
-            
+
             // Find all days this allocation spans
             const startDate = new Date(allocation.start_date + 'T00:00:00');
             const endDate = new Date(allocation.end_date + 'T00:00:00');
-            
+
             for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
                 const dateStr = this.formatDateLocal(d.getFullYear(), d.getMonth(), d.getDate());
                 const container = this.container.querySelector(`.calendar-allocations[data-date="${dateStr}"]`);
@@ -384,15 +386,15 @@ const Calendar = {
             }
         });
     },
-    
+
     onDateClick(callback) {
         this.onDateClickCallback = callback;
     },
-    
+
     onAllocationClick(callback) {
         this.onAllocationClickCallback = callback;
     },
-    
+
     onProjectClick(callback) {
         this.onProjectClickCallback = callback;
     }

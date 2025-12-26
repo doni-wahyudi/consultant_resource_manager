@@ -58,7 +58,7 @@ const CompletedPage = {
 
         container.innerHTML = `
             <table class="data-table">
-                <thead><tr><th>Name</th><th>Client</th><th>Total Days</th><th>Assigned Talents</th><th>Payment Details</th><th>Actions</th></tr></thead>
+                <thead><tr><th>Name</th><th>Client</th><th>Dates</th><th>Total Days</th><th>Talents</th><th>Attachment</th><th>Payment Details</th><th>Actions</th></tr></thead>
                 <tbody>
                     ${completed.map(p => {
             const client = clients.find(c => c.id === p.client_id);
@@ -70,6 +70,19 @@ const CompletedPage = {
                 : '-';
             const hasReimbursement = p.reimbursement_amount && p.reimbursement_amount > 0;
             const totalDays = this.calculateProjectTotalDays(p);
+            const attachmentCount = (p.attachments || []).length;
+            const batchCount = (p.batches || []).length;
+            const dateDisplay = batchCount > 1
+                ? `<span class="batch-label">Batch (${batchCount})</span>`
+                : batchCount === 1
+                    ? (p.batches[0].start_date === p.batches[0].end_date
+                        ? this.formatShortDate(p.batches[0].start_date)
+                        : `${this.formatShortDate(p.batches[0].start_date)} - ${this.formatShortDate(p.batches[0].end_date)}`)
+                    : p.start_date && p.end_date
+                        ? (p.start_date === p.end_date
+                            ? this.formatShortDate(p.start_date)
+                            : `${this.formatShortDate(p.start_date)} - ${this.formatShortDate(p.end_date)}`)
+                        : '-';
             return `
                             <tr>
                                 <td>
@@ -77,8 +90,15 @@ const CompletedPage = {
                                     ${p.name}
                                 </td>
                                 <td>${client?.name || '-'}</td>
+                                <td class="date-cell">${dateDisplay}</td>
                                 <td>${totalDays !== null ? totalDays + ' days' : '-'}</td>
                                 <td>${talentDisplay}</td>
+                                <td>
+                                    ${attachmentCount > 0
+                    ? `<span class="attachment-badge" data-action="edit" data-id="${p.id}" title="View attachments">📎 ${attachmentCount}</span>`
+                    : ''}
+                                    <button class="btn-icon-sm" data-action="edit" data-id="${p.id}" title="Add attachment">+</button>
+                                </td>
                                 <td class="payment-details-cell">
                                     <div class="payment-main">
                                         <span class="payment-label">Project:</span>
@@ -116,6 +136,12 @@ const CompletedPage = {
             minimumFractionDigits: 0,
             maximumFractionDigits: 0
         }).format(amount || 0);
+    },
+
+    formatShortDate(dateStr) {
+        if (!dateStr) return '';
+        const date = new Date(dateStr + 'T00:00:00');
+        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     },
 
     /**
@@ -201,6 +227,19 @@ const CompletedPage = {
                             <textarea id="reimbursement-notes" class="form-textarea" 
                                 placeholder="Transportation, meals, materials, etc.">${project.reimbursement_notes || ''}</textarea>
                         </div>
+                        <div class="form-group">
+                            <label class="form-label">Invoice / Receipt</label>
+                            <div class="file-upload-container compact">
+                                <div id="invoice-attachments-list" class="attachments-list"></div>
+                                <div class="file-dropzone compact" id="invoice-file-dropzone">
+                                    <input type="file" id="invoice-file-input" accept="image/*,.pdf,.zip,.rar" style="display:none;">
+                                    <div class="dropzone-content">
+                                        <span class="dropzone-icon">📄</span>
+                                        <span class="dropzone-text">Drop invoice or <button type="button" class="btn-link" id="invoice-file-browse">browse</button></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                         <div class="payment-status-row">
                             <span class="status-badge lg ${project.reimbursement_paid ? 'paid' : 'unpaid'}" id="reimbursement-status-badge">
                                 ${project.reimbursement_paid ? '✓ Paid' : '○ Unpaid'}
@@ -242,6 +281,9 @@ const CompletedPage = {
             badge.className = `status-badge lg ${reimbursementPaid ? 'paid' : 'unpaid'}`;
             badge.textContent = reimbursementPaid ? '✓ Paid' : '○ Unpaid';
         });
+
+        // Set up invoice file upload
+        this.setupInvoiceUpload(project.id);
 
         // Cancel
         document.getElementById('payment-cancel-btn')?.addEventListener('click', () => Modal.hide());
@@ -492,6 +534,106 @@ const CompletedPage = {
 
         // Initial display update
         updateBatchDisplay();
+    },
+
+    async setupInvoiceUpload(projectId) {
+        const listContainer = document.getElementById('invoice-attachments-list');
+        const dropzone = document.getElementById('invoice-file-dropzone');
+        const fileInput = document.getElementById('invoice-file-input');
+        const browseBtn = document.getElementById('invoice-file-browse');
+
+        if (!listContainer || !dropzone) return;
+
+        // Load existing invoice attachments
+        const loadAttachments = async () => {
+            try {
+                const attachments = await StorageService.getAttachments(projectId, 'reimbursement');
+                listContainer.innerHTML = attachments.length > 0 ? attachments.map(a => `
+                    <div class="attachment-item compact" data-id="${a.id}">
+                        <span class="attachment-icon">${StorageService.getFileIcon(a.file_type)}</span>
+                        <div class="attachment-info">
+                            <a href="${StorageService.getPublicUrl(a.storage_path)}" target="_blank" class="attachment-name">${a.file_name}</a>
+                            <span class="attachment-size">${StorageService.formatFileSize(a.file_size)}</span>
+                        </div>
+                        <button type="button" class="btn-icon attachment-delete" data-delete="${a.id}">&times;</button>
+                    </div>
+                `).join('') : '';
+            } catch (error) {
+                console.error('Failed to load invoice attachments:', error);
+            }
+        };
+
+        await loadAttachments();
+
+        // Browse button click
+        browseBtn?.addEventListener('click', (e) => {
+            e.preventDefault();
+            fileInput?.click();
+        });
+
+        // File input change
+        fileInput?.addEventListener('change', async (e) => {
+            await this.handleInvoiceUpload(e.target.files, projectId, loadAttachments);
+            fileInput.value = '';
+        });
+
+        // Drag and drop
+        dropzone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropzone.classList.add('dragover');
+        });
+
+        dropzone.addEventListener('dragleave', () => {
+            dropzone.classList.remove('dragover');
+        });
+
+        dropzone.addEventListener('drop', async (e) => {
+            e.preventDefault();
+            dropzone.classList.remove('dragover');
+            await this.handleInvoiceUpload(e.dataTransfer.files, projectId, loadAttachments);
+        });
+
+        // Delete attachment
+        listContainer.addEventListener('click', async (e) => {
+            const deleteId = e.target.dataset.delete;
+            if (deleteId) {
+                try {
+                    await StorageService.deleteAttachment(deleteId);
+                    await loadAttachments();
+                    Toast.success('Invoice deleted');
+                } catch (error) {
+                    Toast.error('Failed to delete invoice');
+                }
+            }
+        });
+    },
+
+    async handleInvoiceUpload(files, projectId, refreshCallback) {
+        if (!files || files.length === 0) return;
+
+        for (const file of files) {
+            try {
+                Toast.info(`Uploading ${file.name}...`);
+
+                const { path, url } = await StorageService.uploadFile(file, `reimbursements/${projectId}`);
+
+                await StorageService.saveAttachment({
+                    project_id: projectId,
+                    file_name: file.name,
+                    file_type: file.type,
+                    file_size: file.size,
+                    storage_path: path,
+                    attachment_type: 'reimbursement'
+                });
+
+                Toast.success(`${file.name} uploaded`);
+
+                if (refreshCallback) await refreshCallback();
+            } catch (error) {
+                console.error('Invoice upload failed:', error);
+                Toast.error(`Failed to upload ${file.name}`);
+            }
+        }
     },
 
     /**

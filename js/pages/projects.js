@@ -137,7 +137,9 @@ const ProjectsPage = {
                         <th>Color</th>
                         <th>Name</th>
                         <th>Client</th>
+                        <th>Dates</th>
                         <th>Talents</th>
+                        <th>Attachment</th>
                         <th>Status</th>
                         <th>Actions</th>
                     </tr>
@@ -151,6 +153,19 @@ const ProjectsPage = {
             const talentDisplay = assignedTalents.length > 0
                 ? `${assignedTalents.slice(0, 2).join(', ')}${assignedTalents.length > 2 ? ` +${assignedTalents.length - 2}` : ''}`
                 : '-';
+            const attachmentCount = (project.attachments || []).length;
+            const batchCount = (project.batches || []).length;
+            const dateDisplay = batchCount > 1
+                ? `<span class="batch-label">Batch (${batchCount})</span>`
+                : batchCount === 1
+                    ? (project.batches[0].start_date === project.batches[0].end_date
+                        ? this.formatShortDate(project.batches[0].start_date)
+                        : `${this.formatShortDate(project.batches[0].start_date)} - ${this.formatShortDate(project.batches[0].end_date)}`)
+                    : project.start_date && project.end_date
+                        ? (project.start_date === project.end_date
+                            ? this.formatShortDate(project.start_date)
+                            : `${this.formatShortDate(project.start_date)} - ${this.formatShortDate(project.end_date)}`)
+                        : '-';
             return `
                             <tr class="${this.selectedProjects.has(project.id) ? 'row-selected' : ''}">
                                 <td><input type="checkbox" class="project-checkbox" data-id="${project.id}" ${this.selectedProjects.has(project.id) ? 'checked' : ''}></td>
@@ -164,7 +179,14 @@ const ProjectsPage = {
                                     ` : ''}
                                 </td>
                                 <td>${client?.name || '-'}</td>
+                                <td class="date-cell">${dateDisplay}</td>
                                 <td>${talentDisplay}</td>
+                                <td>
+                                    ${attachmentCount > 0
+                    ? `<span class="attachment-badge" data-action="edit" data-id="${project.id}" title="View attachments">📎 ${attachmentCount}</span>`
+                    : ''}
+                                    <button class="btn-icon-sm" data-action="edit" data-id="${project.id}" title="Add attachment">+</button>
+                                </td>
                                 <td>
                                     <select class="form-select" data-action="status" data-id="${project.id}">
                                         <option value="upcoming" ${project.status === 'upcoming' ? 'selected' : ''}>Upcoming</option>
@@ -374,8 +396,22 @@ const ProjectsPage = {
                     </select>
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Date Batches</label>
-                    <p class="form-hint">Add one or more date ranges for this project</p>
+                    <label class="form-label">Project Dates</label>
+                    <p class="form-hint">Set the main project date range</p>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label-sm">Start Date</label>
+                            <input type="date" name="start_date" class="form-input" value="${project?.start_date || ''}">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label-sm">End Date</label>
+                            <input type="date" name="end_date" class="form-input" value="${project?.end_date || ''}">
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Additional Date Batches <span class="text-muted">(Optional)</span></label>
+                    <p class="form-hint">Add more date ranges if this project has non-continuous dates</p>
                     <div class="batch-dates-container">
                         <div id="batch-dates-list" class="batch-list">
                             ${(project?.batches || []).map(batch => `
@@ -455,6 +491,22 @@ const ProjectsPage = {
                         `).join('') : '<p class="text-muted">No talents available. Add talents first.</p>'}
                     </div>
                 </div>
+                ${project ? `
+                <div class="form-group">
+                    <label class="form-label">Attachments</label>
+                    <p class="form-hint">Upload files related to this project (contracts, briefs, etc.)</p>
+                    <div class="file-upload-container">
+                        <div id="project-attachments-list" class="attachments-list"></div>
+                        <div class="file-dropzone" id="project-file-dropzone">
+                            <input type="file" id="project-file-input" multiple accept="*/*" style="display:none;">
+                            <div class="dropzone-content">
+                                <span class="dropzone-icon">📎</span>
+                                <span class="dropzone-text">Drop files here or <button type="button" class="btn-link" id="project-file-browse">browse</button></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                ` : ''}
             </form>
         `;
 
@@ -474,6 +526,11 @@ const ProjectsPage = {
         // Set up batch dates management
         this.setupBatchDatesInput(project?.batches || []);
 
+        // Set up file attachments (only for existing projects)
+        if (project) {
+            this.setupFileAttachments(project.id);
+        }
+
         // Set up form submission with proper event handling
         const saveBtn = document.querySelector('.modal-footer [data-action="save"]');
         const cancelBtn = document.querySelector('.modal-footer [data-action="cancel"]');
@@ -490,6 +547,112 @@ const ProjectsPage = {
             saveBtn.textContent = 'Saving...';
             await this.handleProjectFormSubmit(project);
         });
+    },
+
+    async setupFileAttachments(projectId) {
+        const listContainer = document.getElementById('project-attachments-list');
+        const dropzone = document.getElementById('project-file-dropzone');
+        const fileInput = document.getElementById('project-file-input');
+        const browseBtn = document.getElementById('project-file-browse');
+
+        if (!listContainer || !dropzone) return;
+
+        // Load existing attachments
+        const loadAttachments = async () => {
+            try {
+                const attachments = await StorageService.getAttachments(projectId, 'general');
+                listContainer.innerHTML = attachments.length > 0 ? attachments.map(a => `
+                    <div class="attachment-item" data-id="${a.id}">
+                        <span class="attachment-icon">${StorageService.getFileIcon(a.file_type)}</span>
+                        <div class="attachment-info">
+                            <a href="${StorageService.getPublicUrl(a.storage_path)}" target="_blank" class="attachment-name">${a.file_name}</a>
+                            <span class="attachment-size">${StorageService.formatFileSize(a.file_size)}</span>
+                        </div>
+                        <button type="button" class="btn-icon attachment-delete" data-delete="${a.id}">&times;</button>
+                    </div>
+                `).join('') : '';
+            } catch (error) {
+                console.error('Failed to load attachments:', error);
+            }
+        };
+
+        await loadAttachments();
+
+        // Browse button click
+        browseBtn?.addEventListener('click', (e) => {
+            e.preventDefault();
+            fileInput?.click();
+        });
+
+        // File input change
+        fileInput?.addEventListener('change', async (e) => {
+            await this.handleFileUpload(e.target.files, projectId, 'general', loadAttachments);
+            fileInput.value = '';
+        });
+
+        // Drag and drop
+        dropzone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropzone.classList.add('dragover');
+        });
+
+        dropzone.addEventListener('dragleave', () => {
+            dropzone.classList.remove('dragover');
+        });
+
+        dropzone.addEventListener('drop', async (e) => {
+            e.preventDefault();
+            dropzone.classList.remove('dragover');
+            await this.handleFileUpload(e.dataTransfer.files, projectId, 'general', loadAttachments);
+        });
+
+        // Delete attachment
+        listContainer.addEventListener('click', async (e) => {
+            const deleteId = e.target.dataset.delete;
+            if (deleteId) {
+                try {
+                    await StorageService.deleteAttachment(deleteId);
+                    await loadAttachments();
+                    Toast.success('Attachment deleted');
+                } catch (error) {
+                    Toast.error('Failed to delete attachment');
+                }
+            }
+        });
+    },
+
+    async handleFileUpload(files, projectId, attachmentType, refreshCallback) {
+        if (!files || files.length === 0) return;
+
+        for (const file of files) {
+            try {
+                Toast.info(`Uploading ${file.name}...`);
+
+                const { path, url } = await StorageService.uploadFile(file, `projects/${projectId}`);
+
+                await StorageService.saveAttachment({
+                    project_id: projectId,
+                    file_name: file.name,
+                    file_type: file.type,
+                    file_size: file.size,
+                    storage_path: path,
+                    attachment_type: attachmentType
+                });
+
+                Toast.success(`${file.name} uploaded`);
+
+                if (refreshCallback) await refreshCallback();
+            } catch (error) {
+                console.error('Upload failed:', error);
+                Toast.error(`Failed to upload ${file.name}`);
+            }
+        }
+    },
+
+    formatShortDate(dateStr) {
+        if (!dateStr) return '';
+        const date = new Date(dateStr + 'T00:00:00');
+        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     },
 
     formatBatchDate(dateStr) {
@@ -628,10 +791,12 @@ const ProjectsPage = {
         // Get batches from hidden field
         const batches = JSON.parse(document.getElementById('batches-hidden')?.value || '[]');
 
-        // Calculate overall start/end date from batches for backward compatibility
-        let startDate = null;
-        let endDate = null;
-        if (batches.length > 0) {
+        // Get dates from main form fields first, then fall back to calculating from batches
+        let startDate = formData.get('start_date') || null;
+        let endDate = formData.get('end_date') || null;
+
+        // If no main dates but have batches, calculate from batches
+        if (!startDate && !endDate && batches.length > 0) {
             startDate = batches.reduce((min, b) => !min || b.start_date < min ? b.start_date : min, null);
             endDate = batches.reduce((max, b) => !max || b.end_date > max ? b.end_date : max, null);
         }

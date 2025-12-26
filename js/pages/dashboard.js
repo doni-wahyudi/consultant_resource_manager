@@ -342,6 +342,7 @@ const DashboardPage = {
                     <tr>
                         <th>Project</th>
                         <th>Client</th>
+                        <th>Dates</th>
                         <th>Total Days</th>
                         <th>Talents</th>
                         <th>Location</th>
@@ -357,6 +358,18 @@ const DashboardPage = {
                 ? assignedTalents.slice(0, 2).join(', ') + (assignedTalents.length > 2 ? ` +${assignedTalents.length - 2}` : '')
                 : '-';
             const totalDays = this.calculateProjectTotalDays(p);
+            const batchCount = (p.batches || []).length;
+            const dateDisplay = batchCount > 1
+                ? `<span class="batch-label">Batch (${batchCount})</span>`
+                : batchCount === 1
+                    ? (p.batches[0].start_date === p.batches[0].end_date
+                        ? this.formatShortDate(p.batches[0].start_date)
+                        : `${this.formatShortDate(p.batches[0].start_date)} - ${this.formatShortDate(p.batches[0].end_date)}`)
+                    : p.start_date && p.end_date
+                        ? (p.start_date === p.end_date
+                            ? this.formatShortDate(p.start_date)
+                            : `${this.formatShortDate(p.start_date)} - ${this.formatShortDate(p.end_date)}`)
+                        : '-';
             return `
                             <tr>
                                 <td>
@@ -364,6 +377,7 @@ const DashboardPage = {
                                     ${p.name}
                                 </td>
                                 <td>${client?.name || '-'}</td>
+                                <td class="date-cell">${dateDisplay}</td>
                                 <td>${totalDays !== null ? totalDays + ' days' : '-'}</td>
                                 <td>${talentDisplay}</td>
                                 <td>${p.location || '-'}</td>
@@ -373,6 +387,12 @@ const DashboardPage = {
                 </tbody>
             </table>
         `;
+    },
+
+    formatShortDate(dateStr) {
+        if (!dateStr) return '';
+        const date = new Date(dateStr + 'T00:00:00');
+        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     },
 
     formatCurrency(amount) {

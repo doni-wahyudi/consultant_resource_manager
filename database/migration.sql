@@ -162,3 +162,24 @@ CREATE INDEX IF NOT EXISTS idx_project_batches_project ON project_batches(projec
 
 -- Enable public access to project_batches table
 ALTER TABLE project_batches DISABLE ROW LEVEL SECURITY;
+
+-- Project Attachments table for storing file metadata
+CREATE TABLE IF NOT EXISTS project_attachments (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
+    file_name VARCHAR(255) NOT NULL,
+    file_type VARCHAR(100),
+    file_size INTEGER,
+    storage_path VARCHAR(500) NOT NULL,
+    attachment_type VARCHAR(50) DEFAULT 'general', -- 'general' or 'reimbursement'
+    uploaded_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Index for faster attachment lookup by project
+CREATE INDEX IF NOT EXISTS idx_project_attachments_project ON project_attachments(project_id);
+
+-- Enable public access to project_attachments table
+ALTER TABLE project_attachments DISABLE ROW LEVEL SECURITY;
+
+-- Add reimbursement invoice URL column to projects (for quick reference)
+ALTER TABLE projects ADD COLUMN IF NOT EXISTS reimbursement_invoice_url VARCHAR(500);
