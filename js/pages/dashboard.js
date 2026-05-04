@@ -8,6 +8,7 @@ const DashboardPage = {
     unsubscribers: [],
     unpaidSortField: 'name',
     unpaidSortOrder: 'asc',
+    selectedUnit: '',
 
     render() {
         const container = document.getElementById('page-dashboard');
@@ -15,19 +16,26 @@ const DashboardPage = {
         container.innerHTML = `
             <div class="page-header">
                 <h1 class="page-title">Dashboard</h1>
+                <div class="header-controls">
+                    <select id="dashboard-unit-filter" class="form-select">
+                        <option value="">All Units</option>
+                        <option value="Aurotech" ${this.selectedUnit === 'Aurotech' ? 'selected' : ''}>Aurotech</option>
+                        <option value="Barbershop" ${this.selectedUnit === 'Barbershop' ? 'selected' : ''}>Barbershop</option>
+                    </select>
+                </div>
             </div>
             <div class="metrics-grid" id="dashboard-metrics"></div>
             <div class="grid-2">
                 <div class="card">
                     <div class="card-header">
-                        <h3 class="card-title">Project Timeline</h3>
-                        <span class="card-subtitle">Active & upcoming projects</span>
+                        <h3 class="card-title">Activity Timeline</h3>
+                        <span class="card-subtitle">Active & upcoming activities</span>
                     </div>
                     <div id="project-timeline" class="card-body"></div>
                 </div>
                 <div class="card">
                     <div class="card-header">
-                        <h3 class="card-title">Talent Utilization</h3>
+                        <h3 class="card-title">Team Utilization</h3>
                         <span class="card-subtitle">This month</span>
                     </div>
                     <div id="talent-utilization" class="card-body"></div>
@@ -43,7 +51,7 @@ const DashboardPage = {
                 </div>
                 <div class="card">
                     <div class="card-header">
-                        <h3 class="card-title">Unpaid Projects</h3>
+                        <h3 class="card-title">Pending Payments</h3>
                         <span class="card-subtitle" id="unpaid-count"></span>
                     </div>
                     <div class="card-body-header">
@@ -68,11 +76,11 @@ const DashboardPage = {
         this.renderTalentUtilization();
         this.renderUpcomingDeadlines();
         this.renderUnpaidProjects();
-        this.setupUnpaidSortListeners();
+        this.setupListeners();
         this.subscribeToState();
     },
 
-    setupUnpaidSortListeners() {
+    setupListeners() {
         document.getElementById('unpaid-sort-field')?.addEventListener('change', (e) => {
             this.unpaidSortField = e.target.value;
             this.renderUnpaidProjects();
@@ -81,6 +89,11 @@ const DashboardPage = {
         document.getElementById('unpaid-sort-order')?.addEventListener('change', (e) => {
             this.unpaidSortOrder = e.target.value;
             this.renderUnpaidProjects();
+        });
+
+        document.getElementById('dashboard-unit-filter')?.addEventListener('change', (e) => {
+            this.selectedUnit = e.target.value;
+            this.render();
         });
     },
 
@@ -115,7 +128,7 @@ const DashboardPage = {
             LoadingUI.showInline('#project-timeline', 'Loading timeline...');
             LoadingUI.showInline('#talent-utilization', 'Loading utilization...');
             LoadingUI.showInline('#upcoming-deadlines', 'Loading deadlines...');
-            LoadingUI.showInline('#unpaid-projects', 'Loading projects...');
+            LoadingUI.showInline('#unpaid-projects', 'Loading activities...');
         }
     },
 
@@ -124,21 +137,34 @@ const DashboardPage = {
         if (!container) return;
 
         const talents = StateManager.getState('talents') || [];
-        const projects = StateManager.getState('projects') || [];
+        let projects = StateManager.getState('projects') || [];
         const clients = StateManager.getState('clients') || [];
         const allocations = StateManager.getState('allocations') || [];
+
+        // Apply unit filter
+        if (this.selectedUnit) {
+            const unitClientIds = clients.filter(c => c.business_unit === this.selectedUnit).map(c => c.id);
+            projects = projects.filter(p => unitClientIds.includes(p.client_id));
+        }
 
         const activeProjects = projects.filter(p => p.status === 'in_progress').length;
         const upcomingProjects = projects.filter(p => p.status === 'upcoming').length;
         const completedProjects = projects.filter(p => p.status === 'completed').length;
 
-        // Calculate utilization rate (talents with allocations this month / total talents)
+        // Calculate utilization rate (team with allocations this month / total team)
         const now = new Date();
         const monthStart = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
         const monthEnd = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate()}`;
 
+        // Filter allocations by project unit if filter is active
+        let filteredAllocations = allocations;
+        if (this.selectedUnit) {
+            const unitProjectIds = projects.map(p => p.id);
+            filteredAllocations = allocations.filter(a => unitProjectIds.includes(a.project_id));
+        }
+
         const activeTalentIds = new Set(
-            allocations
+            filteredAllocations
                 .filter(a => a.start_date <= monthEnd && a.end_date >= monthStart)
                 .map(a => a.talent_id)
         );
@@ -149,22 +175,22 @@ const DashboardPage = {
                 <div class="metric-icon">👥</div>
                 <div class="metric-content">
                     <div class="metric-value">${talents.length}</div>
-                    <div class="metric-label">Total Talents</div>
+                    <div class="metric-label">Total Team</div>
                 </div>
             </div>
             <div class="metric-card">
-                <div class="metric-icon">📁</div>
+                <div class="metric-icon">⚡</div>
                 <div class="metric-content">
                     <div class="metric-value">${activeProjects}</div>
-                    <div class="metric-label">Active Projects</div>
+                    <div class="metric-label">Active Activities</div>
                 </div>
                 <div class="metric-sub">${upcomingProjects} upcoming</div>
             </div>
             <div class="metric-card">
                 <div class="metric-icon">🏢</div>
                 <div class="metric-content">
-                    <div class="metric-value">${clients.length}</div>
-                    <div class="metric-label">Clients</div>
+                    <div class="metric-value">${this.selectedUnit ? clients.filter(c => c.business_unit === this.selectedUnit).length : clients.length}</div>
+                    <div class="metric-label">Entities</div>
                 </div>
             </div>
             <div class="metric-card ${utilizationRate >= 70 ? 'utilization-high' : utilizationRate >= 40 ? 'utilization-medium' : 'utilization-low'}">
@@ -184,14 +210,22 @@ const DashboardPage = {
         const container = document.getElementById('project-timeline');
         if (!container) return;
 
-        const projects = StateManager.getState('projects') || [];
+        let projects = StateManager.getState('projects') || [];
+        const clients = StateManager.getState('clients') || [];
+
+        // Apply unit filter
+        if (this.selectedUnit) {
+            const unitClientIds = clients.filter(c => c.business_unit === this.selectedUnit).map(c => c.id);
+            projects = projects.filter(p => unitClientIds.includes(p.client_id));
+        }
+
         const activeProjects = projects.filter(p =>
             (p.status === 'in_progress' || p.status === 'upcoming') &&
             (p.start_date || p.end_date)
         ).sort((a, b) => (a.start_date || '').localeCompare(b.start_date || ''));
 
         if (activeProjects.length === 0) {
-            container.innerHTML = '<p class="empty-state">No projects with dates to display</p>';
+            container.innerHTML = '<p class="empty-state">No activities with dates to display</p>';
             return;
         }
 
@@ -234,7 +268,7 @@ const DashboardPage = {
                         `;
         }).join('')}
                 </div>
-                ${activeProjects.length > 8 ? `<p class="text-muted" style="margin-top:8px;">+${activeProjects.length - 8} more projects</p>` : ''}
+                ${activeProjects.length > 8 ? `<p class="text-muted" style="margin-top:8px;">+${activeProjects.length - 8} more activities</p>` : ''}
             </div>
         `;
     },
@@ -248,11 +282,11 @@ const DashboardPage = {
         const projects = StateManager.getState('projects') || [];
 
         if (talents.length === 0) {
-            container.innerHTML = '<p class="empty-state">No talents to display</p>';
+            container.innerHTML = '<p class="empty-state">No team members to display</p>';
             return;
         }
 
-        // Calculate days allocated this month for each talent
+        // Calculate days allocated this month for each team member
         const now = new Date();
         const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
         const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
@@ -290,7 +324,7 @@ const DashboardPage = {
                     </div>
                 `).join('')}
             </div>
-            ${talents.length > 6 ? `<p class="text-muted" style="margin-top:8px;"><a href="#/talents">View all ${talents.length} talents →</a></p>` : ''}
+            ${talents.length > 6 ? `<p class="text-muted" style="margin-top:8px;"><a href="#/talents">View all ${talents.length} team members →</a></p>` : ''}
         `;
     },
 
@@ -298,7 +332,14 @@ const DashboardPage = {
         const container = document.getElementById('upcoming-deadlines');
         if (!container) return;
 
-        const upcoming = DashboardService.getUpcomingDeadlines();
+        let upcoming = DashboardService.getUpcomingDeadlines();
+        const clients = StateManager.getState('clients') || [];
+
+        // Apply unit filter
+        if (this.selectedUnit) {
+            const unitClientIds = clients.filter(c => c.business_unit === this.selectedUnit).map(c => c.id);
+            upcoming = upcoming.filter(p => unitClientIds.includes(p.client_id));
+        }
 
         if (upcoming.length === 0) {
             container.innerHTML = '<p class="empty-state">No upcoming deadlines in the next 30 days</p>';
@@ -309,7 +350,7 @@ const DashboardPage = {
             <table class="data-table">
                 <thead>
                     <tr>
-                        <th>Project</th>
+                        <th>Activity</th>
                         <th>Deadline</th>
                         <th>Days Left</th>
                     </tr>
@@ -352,7 +393,7 @@ const DashboardPage = {
     },
 
     /**
-     * Calculate total days for a project, using batches if available
+     * Calculate total days for an activity, using batches if available
      */
     calculateProjectTotalDays(project) {
         // Use batches if available
@@ -370,34 +411,43 @@ const DashboardPage = {
         const countEl = document.getElementById('unpaid-count');
         if (!container) return;
 
-        const summary = DashboardService.getUnpaidProjectsSummary();
+        let summary = DashboardService.getUnpaidProjectsSummary();
         const talents = StateManager.getState('talents') || [];
+        const clients = StateManager.getState('clients') || [];
+
+        // Apply unit filter
+        if (this.selectedUnit) {
+            const unitClientIds = clients.filter(c => c.business_unit === this.selectedUnit).map(c => c.id);
+            const filteredProjects = summary.projects.filter(p => unitClientIds.includes(p.client_id));
+            summary = {
+                projects: filteredProjects,
+                count: filteredProjects.length
+            };
+        }
 
         if (countEl) {
             countEl.textContent = summary.count > 0
-                ? `${summary.count} project${summary.count > 1 ? 's' : ''} pending`
+                ? `${summary.count} activity${summary.count > 1 ? 's' : ''} pending`
                 : '';
         }
 
         if (summary.count === 0) {
-            container.innerHTML = '<p class="empty-state success">All completed projects are paid ✓</p>';
+            container.innerHTML = '<p class="empty-state success">All activities are paid ✓</p>';
             return;
         }
 
-        const clients = StateManager.getState('clients') || [];
-
-        // Sort projects
+        // Sort activities
         const sortedProjects = this.sortUnpaidProjects(summary.projects);
 
         container.innerHTML = `
             <table class="data-table">
                 <thead>
                     <tr>
-                        <th>Project</th>
-                        <th>Client</th>
+                        <th>Activity</th>
+                        <th>Entity</th>
                         <th>Dates</th>
                         <th>Total Days</th>
-                        <th>Talents</th>
+                        <th>Team</th>
                         <th>Location</th>
                     </tr>
                 </thead>

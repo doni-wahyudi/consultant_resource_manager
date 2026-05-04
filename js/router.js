@@ -43,7 +43,7 @@ const Router = {
             'projects': { page: 'projects', render: () => ProjectsPage.render() },
             'completed': { page: 'completed', render: () => CompletedPage.render() },
             'clients': { page: 'clients', render: () => ClientsPage.render() },
-            'settings': { page: 'settings', render: () => SettingsPage.render(), protected: true }
+            'settings': { page: 'settings', render: () => SettingsPage.render() }
         };
     },
     
@@ -71,18 +71,7 @@ const Router = {
                 return;
             }
             
-            // For protected routes (like settings), require authentication
-            if (route.protected && !isAuthenticated) {
-                Toast.warning('Please sign in to access Settings');
-                this.navigate('login');
-                return;
-            }
-            
-            // For other routes, check global auth requirement
-            if (!isAuthenticated && this.requiresAuth) {
-                this.navigate('login');
-                return;
-            }
+
             
             this.showPage(route.page);
             route.render(params[0]);

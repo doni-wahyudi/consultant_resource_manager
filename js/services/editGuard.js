@@ -9,12 +9,7 @@ const EditGuard = {
      * @returns {Promise<boolean>} True if user can proceed with edit
      */
     async canEdit() {
-        if (AuthService.isAuthenticated()) {
-            return true;
-        }
-        
-        // Show login prompt
-        return this.showLoginPrompt();
+        return true;
     },
     
     /**

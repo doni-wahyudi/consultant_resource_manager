@@ -43,9 +43,7 @@ const App = {
             // Update user menu in nav
             this.updateUserMenu();
             
-            // Navigate to default page
-            const isAuthenticated = StateManager.getState('auth.isAuthenticated');
-            Router.navigate(isAuthenticated ? 'dashboard' : 'dashboard'); // Allow access without auth for demo
+            Router.navigate('dashboard');
             
             console.log('Application initialized successfully');
         } catch (error) {

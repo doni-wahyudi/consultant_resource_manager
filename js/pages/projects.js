@@ -14,22 +14,22 @@ const ProjectsPage = {
 
         container.innerHTML = `
             <div class="page-header">
-                <h1 class="page-title">Projects</h1>
+                <h1 class="page-title">Activities</h1>
                 <div class="page-actions">
                     <button class="btn btn-secondary" id="bulk-project-actions-btn" style="display:none;">Bulk Actions</button>
-                    <button class="btn btn-primary" id="add-project-btn">+ Add Project</button>
+                    <button class="btn btn-primary" id="add-project-btn">+ Add Activity</button>
                 </div>
             </div>
             <div class="card">
                 <div class="filter-bar">
-                    <input type="text" class="form-input" id="project-search" placeholder="Search projects..." style="flex:2;">
+                    <input type="text" class="form-input" id="project-search" placeholder="Search activities..." style="flex:2;">
                     <select class="form-select" id="project-filter-status">
                         <option value="">All Status</option>
                         <option value="upcoming">Upcoming</option>
                         <option value="in_progress">In Progress</option>
                     </select>
                     <select class="form-select" id="project-filter-client">
-                        <option value="">All Clients</option>
+                        <option value="">All Entities</option>
                     </select>
                     <button class="btn btn-secondary btn-sm" id="clear-project-filters-btn">Clear</button>
                 </div>
@@ -84,7 +84,7 @@ const ProjectsPage = {
                 return false;
             }
 
-            // Client filter
+            // Entity filter
             if (this.filterClient && project.client_id !== this.filterClient) {
                 return false;
             }
@@ -110,9 +110,9 @@ const ProjectsPage = {
         if (allProjects.length === 0) {
             container.innerHTML = `
                 <div class="empty-state">
-                    <div class="empty-state-icon">📁</div>
-                    <h3 class="empty-state-title">No projects yet</h3>
-                    <p class="empty-state-text">Add your first project to get started</p>
+                    <div class="empty-state-icon">⚡</div>
+                    <h3 class="empty-state-title">No activities yet</h3>
+                    <p class="empty-state-text">Add your first activity to get started</p>
                 </div>
             `;
             return;
@@ -136,9 +136,9 @@ const ProjectsPage = {
                         <th style="width:40px;"><input type="checkbox" id="select-all-projects" ${this.selectedProjects.size === projects.length && projects.length > 0 ? 'checked' : ''}></th>
                         <th>Color</th>
                         <th>Name</th>
-                        <th>Client</th>
+                        <th>Entity</th>
                         <th>Dates</th>
-                        <th>Talents</th>
+                        <th>Team</th>
                         <th>Attachment</th>
                         <th>Status</th>
                         <th>Actions</th>
@@ -178,7 +178,14 @@ const ProjectsPage = {
                                         </div>
                                     ` : ''}
                                 </td>
-                                <td>${client?.name || '-'}</td>
+                                <td>
+                                    ${client?.name || '-'}
+                                    ${client?.business_unit ? `
+                                        <div class="mt-1">
+                                            <span class="unit-badge unit-${client.business_unit.toLowerCase()}" style="font-size: 0.65rem; padding: 1px 4px;">${client.business_unit}</span>
+                                        </div>
+                                    ` : ''}
+                                </td>
                                 <td class="date-cell">${dateDisplay}</td>
                                 <td>${talentDisplay}</td>
                                 <td>
@@ -204,7 +211,7 @@ const ProjectsPage = {
                 </tbody>
             </table>
             <div class="table-footer">
-                <span class="text-muted">Showing ${projects.length} of ${allProjects.length} active projects</span>
+                <span class="text-muted">Showing ${projects.length} of ${allProjects.length} active activities</span>
             </div>
         `;
     },
@@ -379,7 +386,7 @@ const ProjectsPage = {
         const content = `
             <form id="project-form" class="modal-form">
                 <div class="form-group">
-                    <label class="form-label">Project Name <span class="required">*</span></label>
+                    <label class="form-label">Activity Name <span class="required">*</span></label>
                     <input type="text" name="name" class="form-input" value="${project?.name || ''}" required>
                 </div>
                 <div class="form-group">
@@ -387,17 +394,17 @@ const ProjectsPage = {
                     <textarea name="description" class="form-textarea">${project?.description || ''}</textarea>
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Client</label>
+                    <label class="form-label">Entity</label>
                     <select name="client_id" class="form-select">
-                        <option value="">Select Client</option>
+                        <option value="">Select Entity</option>
                         ${clients.map(c => `
                             <option value="${c.id}" ${project?.client_id === c.id ? 'selected' : ''}>${c.name}</option>
                         `).join('')}
                     </select>
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Project Dates</label>
-                    <p class="form-hint">Set the main project date range</p>
+                    <label class="form-label">Activity Dates</label>
+                    <p class="form-hint">Set the main activity date range</p>
                     <div class="form-row">
                         <div class="form-group">
                             <label class="form-label-sm">Start Date</label>
@@ -411,7 +418,7 @@ const ProjectsPage = {
                 </div>
                 <div class="form-group">
                     <label class="form-label">Additional Date Batches <span class="text-muted">(Optional)</span></label>
-                    <p class="form-hint">Add more date ranges if this project has non-continuous dates</p>
+                    <p class="form-hint">Add more date ranges if this activity has non-continuous dates</p>
                     <div class="batch-dates-container">
                         <div id="batch-dates-list" class="batch-list">
                             ${(project?.batches || []).map(batch => `
@@ -445,7 +452,7 @@ const ProjectsPage = {
                 </div>
                 <div class="form-row">
                     <div class="form-group">
-                        <label class="form-label">Project Type</label>
+                        <label class="form-label">Activity Type</label>
                         <select name="project_type" class="form-select">
                             <option value="offline" ${project?.project_type === 'offline' || !project?.project_type ? 'selected' : ''}>Offline</option>
                             <option value="online" ${project?.project_type === 'online' ? 'selected' : ''}>Online</option>
@@ -458,7 +465,7 @@ const ProjectsPage = {
                 </div>
                 <div class="form-group">
                     <label class="form-label">Required Skills</label>
-                    <p class="form-hint">Skills needed for this project (for filtering talents later)</p>
+                    <p class="form-hint">Skills needed for this activity (for filtering team members later)</p>
                     <div class="skills-input-container">
                         <div class="tag-list" id="required-skills-tags">
                             ${currentSkills.map(skill => `
@@ -476,8 +483,8 @@ const ProjectsPage = {
                     <input type="hidden" name="required_skills" id="required-skills-hidden" value='${JSON.stringify(currentSkills)}'>
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Assign Talents</label>
-                    <p class="form-hint">Select talents to assign to this project</p>
+                    <label class="form-label">Assign Team Members</label>
+                    <p class="form-hint">Select team members to assign to this activity</p>
                     <div class="talent-selection-list" id="talent-checkboxes">
                         ${talents.length > 0 ? talents.map(t => `
                             <label class="checkbox-label talent-checkbox">
@@ -488,13 +495,13 @@ const ProjectsPage = {
                                     <span class="talent-checkbox-skills">${(t.skills || []).slice(0, 3).join(', ') || 'No skills'}</span>
                                 </span>
                             </label>
-                        `).join('') : '<p class="text-muted">No talents available. Add talents first.</p>'}
+                        `).join('') : '<p class="text-muted">No team members available. Add team members first.</p>'}
                     </div>
                 </div>
                 ${project ? `
                 <div class="form-group">
                     <label class="form-label">Attachments</label>
-                    <p class="form-hint">Upload files related to this project (contracts, briefs, etc.)</p>
+                    <p class="form-hint">Upload files related to this activity (contracts, briefs, etc.)</p>
                     <div class="file-upload-container">
                         <div id="project-attachments-list" class="attachments-list"></div>
                         <div class="file-dropzone" id="project-file-dropzone">
@@ -511,7 +518,7 @@ const ProjectsPage = {
         `;
 
         Modal.show({
-            title: project ? 'Edit Project' : 'Add Project',
+            title: project ? 'Edit Activity' : 'Add Activity',
             content: content,
             size: 'lg',
             footer: `
@@ -817,7 +824,7 @@ const ProjectsPage = {
             .map(cb => cb.value);
 
         if (!data.name) {
-            Toast.error('Project name is required');
+            Toast.error('Activity name is required');
             return;
         }
 
@@ -864,7 +871,7 @@ const ProjectsPage = {
                     }
                 }
 
-                Toast.success('Project updated');
+                Toast.success('Activity updated');
             } else {
                 const newProject = await ProjectService.create(data, { showToast: false });
                 projectId = newProject.id;
@@ -899,7 +906,7 @@ const ProjectsPage = {
                 // Refresh to get all data
                 await ProjectService.getAll();
 
-                Toast.success('Project created');
+                Toast.success('Activity created');
             }
         } catch (error) {
             console.error('Failed to save project:', error);

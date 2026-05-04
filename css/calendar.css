@@ -1,8 +1,12 @@
-/* Calendar Styles */
+/* 
+ * Auro Resource Manager - Calendar & Timeline Styles
+ * Aesthetic: Premium Black and Gold
+ */
+
 .calendar-container {
-    background-color: var(--bg-primary);
+    background-color: var(--bg-tertiary);
     border-radius: var(--border-radius-lg);
-    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-color);
     overflow: hidden;
 }
 
@@ -10,797 +14,142 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 16px 20px;
+    padding: 25px 30px;
     border-bottom: 1px solid var(--border-color);
-    flex-wrap: wrap;
-    gap: 12px;
 }
 
 .calendar-title {
-    font-size: 18px;
-    font-weight: 600;
-}
-
-.calendar-nav {
-    display: flex;
-    gap: 8px;
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    color: var(--primary-color);
 }
 
 .calendar-nav-btn {
-    padding: 8px 12px;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
     border: 1px solid var(--border-color);
-    border-radius: var(--border-radius);
-    background-color: var(--bg-primary);
+    background-color: rgba(255, 255, 255, 0.05);
+    color: var(--primary-color);
     cursor: pointer;
     transition: all var(--transition-fast);
-    min-height: 40px;
-    min-width: 40px;
     display: flex;
     align-items: center;
     justify-content: center;
+    font-size: 1.2rem;
 }
 
-.calendar-nav-btn:hover,
-.calendar-nav-btn:active {
-    background-color: var(--bg-tertiary);
+.calendar-nav-btn:hover {
+    background-color: var(--primary-color);
+    color: var(--bg-primary);
 }
 
 .calendar-grid {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
+    background-color: var(--border-color);
+    gap: 1px;
 }
 
 .calendar-day-header {
-    padding: 12px 4px;
+    padding: 15px;
     text-align: center;
-    font-weight: 600;
-    color: var(--text-secondary);
-    background-color: var(--bg-tertiary);
-    border-bottom: 1px solid var(--border-color);
-    font-size: 12px;
-    min-width: 40px;
+    font-weight: 700;
+    color: var(--text-muted);
+    background-color: rgba(255, 255, 255, 0.02);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
 }
 
 .calendar-day {
-    min-height: 100px;
-    padding: 8px;
-    border-right: 1px solid var(--border-color);
-    border-bottom: 1px solid var(--border-color);
-    background-color: var(--bg-primary);
+    min-height: 120px;
+    padding: 15px;
+    background-color: var(--bg-tertiary);
     transition: background-color var(--transition-fast);
+    position: relative;
 }
-
-.calendar-day:nth-child(7n) {
-    border-right: none;
-}
-
 
 .calendar-day:hover {
-    background-color: var(--bg-tertiary);
+    background-color: rgba(255, 255, 255, 0.02);
 }
 
 .calendar-day.other-month {
-    background-color: var(--bg-secondary);
-    color: var(--text-muted);
+    opacity: 0.3;
 }
 
 .calendar-day.today {
-    background-color: rgba(79, 70, 229, 0.05);
-}
-
-.calendar-day.drop-target {
-    background-color: rgba(79, 70, 229, 0.1);
-    border: 2px dashed var(--primary-color);
+    background-color: rgba(212, 175, 55, 0.05);
 }
 
 .calendar-date {
-    font-size: 12px;
-    font-weight: 500;
-    color: var(--text-secondary);
-    margin-bottom: 4px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    margin-bottom: 10px;
 }
 
 .calendar-day.today .calendar-date {
-    background-color: var(--primary-color);
-    color: white;
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    color: var(--primary-color);
 }
 
-/* Allocation Items */
+/* Allocation Items in Calendar */
 .allocation-item {
-    padding: 4px 8px;
-    margin-bottom: 4px;
-    border-radius: 4px;
-    font-size: 11px;
-    color: white;
+    padding: 6px 10px;
+    margin-bottom: 5px;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #fff;
     cursor: pointer;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.allocation-item:hover {
-    opacity: 0.9;
-}
-
-/* Project date markers - continuous duration bars */
-.allocation-item.project-date-marker {
-    font-size: 10px;
-    padding: 2px 6px;
-    border-radius: 3px;
-    cursor: default;
-    border-left: 3px solid rgba(255, 255, 255, 0.5);
-}
-
-/* Talent Sidebar */
-.talent-sidebar {
-    width: var(--sidebar-width);
-    background-color: var(--bg-primary);
-    border-right: 1px solid var(--border-color);
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    flex-shrink: 0;
-}
-
-.talent-sidebar-header {
-    padding: 16px;
-    border-bottom: 1px solid var(--border-color);
-    flex-shrink: 0;
-}
-
-.talent-sidebar-title {
-    font-size: 16px;
-    font-weight: 600;
-    margin-bottom: 12px;
-}
-
-.talent-filter {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-}
-
-.talent-filter .form-select {
-    flex: 1;
-    min-width: 100px;
-}
-
-.talent-list {
-    flex: 1;
-    overflow-y: auto;
-    padding: 12px;
-    -webkit-overflow-scrolling: touch;
-}
-
+/* Sidebar Talent Cards */
 .talent-card {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 12px;
-    background-color: var(--bg-secondary);
-    border-radius: var(--border-radius);
-    margin-bottom: 8px;
+    gap: 15px;
+    padding: 15px;
+    background-color: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border-color);
+    border-radius: 15px;
+    margin-bottom: 10px;
     cursor: grab;
     transition: all var(--transition-fast);
-    -webkit-tap-highlight-color: transparent;
 }
 
-.talent-card:hover,
-.talent-card:active {
-    background-color: var(--bg-tertiary);
-    box-shadow: var(--shadow-sm);
-}
-
-.talent-card.dragging {
-    opacity: 0.5;
-    cursor: grabbing;
+.talent-card:hover {
+    border-color: var(--primary-color);
+    background-color: rgba(255, 255, 255, 0.05);
 }
 
 .talent-avatar {
-    width: 36px;
-    height: 36px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
     background-color: var(--primary-color);
-    color: white;
+    color: var(--bg-primary);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-weight: 600;
-    font-size: 14px;
-    flex-shrink: 0;
-}
-
-.talent-info {
-    flex: 1;
-    min-width: 0;
+    font-weight: 700;
 }
 
 .talent-name {
-    font-weight: 500;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.talent-location {
-    font-size: 11px;
-    color: var(--text-muted);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--text-primary);
 }
 
 .talent-status {
-    font-size: 12px;
-    color: var(--text-secondary);
-}
-
-.talent-status.available {
-    color: var(--success-color);
-}
-
-.talent-status.unavailable {
-    color: var(--danger-color);
-}
-
-/* Legend */
-.legend-container {
-    padding: 16px;
-    background-color: var(--bg-primary);
-    border-radius: var(--border-radius-lg);
-    box-shadow: var(--shadow-sm);
-}
-
-.legend-title {
-    font-size: 14px;
-    font-weight: 600;
-    margin-bottom: 12px;
-}
-
-.legend-items {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-}
-
-.legend-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.legend-color {
-    width: 16px;
-    height: 16px;
-    border-radius: 4px;
-}
-
-.legend-label {
-    font-size: 12px;
-    color: var(--text-secondary);
-}
-
-/* Legend sections for separating project statuses */
-.legend-section {
-    margin-bottom: 12px;
-}
-
-.legend-section:last-child {
-    margin-bottom: 0;
-}
-
-.legend-section-title {
-    display: block;
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--text-secondary);
-    text-transform: uppercase;
-    margin-bottom: 8px;
-    padding-bottom: 4px;
-    border-bottom: 1px solid var(--border-color);
-}
-
-/* Selected date highlight */
-.calendar-day.selected {
-    background-color: rgba(79, 70, 229, 0.15);
-    box-shadow: inset 0 0 0 2px var(--primary-color);
-}
-
-/* Talent sidebar date indicator */
-.talent-date-indicator {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 12px;
-    background-color: var(--bg-tertiary);
-    border-radius: var(--border-radius);
-    margin-bottom: 12px;
-    font-size: 13px;
-}
-
-.talent-date-indicator .date-label {
-    color: var(--text-secondary);
-}
-
-.talent-date-indicator .date-value {
-    font-weight: 600;
-    color: var(--primary-color);
-}
-
-/* Unavailable talent card styling */
-.talent-card.unavailable {
-    opacity: 0.7;
-    background-color: rgba(239, 68, 68, 0.05);
-    border-left: 3px solid var(--danger-color);
-}
-
-/* Project date marker clickable */
-.allocation-item.project-date-marker {
-    cursor: pointer;
-}
-
-.allocation-item.project-date-marker:hover {
-    opacity: 0.8 !important;
-    transform: scale(1.02);
-}
-
-/* Project details popup */
-.project-details-popup {
-    padding: 8px 0;
-}
-
-.project-detail-row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 16px;
-}
-
-.project-color-indicator {
-    width: 24px;
-    height: 24px;
-    border-radius: 6px;
-}
-
-.project-detail-section {
-    margin-bottom: 16px;
-}
-
-.project-detail-section label {
-    display: block;
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--text-secondary);
-    text-transform: uppercase;
-    margin-bottom: 6px;
-}
-
-.project-detail-section p {
-    margin: 0;
-    color: var(--text-primary);
-}
-
-.project-detail-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 16px;
-    margin-bottom: 16px;
-}
-
-.project-detail-item label {
-    display: block;
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--text-secondary);
-    text-transform: uppercase;
-    margin-bottom: 4px;
-}
-
-.project-detail-item p {
-    margin: 0;
-    font-size: 14px;
-    color: var(--text-primary);
-}
-
-/* Talent and skill chips */
-.talent-chips,
-.skill-chips {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-}
-
-.talent-chip {
-    display: inline-flex;
-    align-items: center;
-    padding: 4px 12px;
-    background-color: var(--primary-color);
-    color: white;
-    border-radius: 16px;
-    font-size: 12px;
+    font-size: 0.75rem;
+    color: var(--text-muted);
     font-weight: 500;
 }
 
-.skill-chip {
-    display: inline-flex;
-    align-items: center;
-    padding: 4px 12px;
-    background-color: var(--bg-tertiary);
-    color: var(--text-primary);
-    border-radius: 16px;
-    font-size: 12px;
-}
-
-
-/* ===== CALENDAR RESPONSIVE STYLES ===== */
-
-/* Tablet */
-@media (max-width: 1024px) {
-    .calendar-header {
-        padding: 12px 16px;
-    }
-
-    .calendar-day {
-        min-height: 80px;
-        padding: 6px;
-    }
-
-    .talent-sidebar {
-        width: 220px;
-    }
-
-    .talent-date-indicator {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 4px;
-    }
-}
-
-/* Mobile */
-@media (max-width: 768px) {
-    .calendar-header {
-        padding: 12px;
-    }
-
-    .calendar-title {
-        font-size: 16px;
-        flex: 1;
-    }
-
-    .calendar-nav {
-        width: 100%;
-        justify-content: space-between;
-    }
-
-    .calendar-nav-btn {
-        flex: 1;
-        max-width: 80px;
-    }
-
-    .calendar-day-header {
-        padding: 8px 2px;
-        font-size: 10px;
-    }
-
-    /* Show abbreviated day names on mobile */
-    .calendar-day-header-full {
-        display: none;
-    }
-
-    .calendar-day-header-short {
-        display: block;
-    }
-
-    .calendar-day {
-        min-height: 60px;
-        padding: 4px;
-    }
-
-    .calendar-date {
-        font-size: 11px;
-    }
-
-    .calendar-day.today .calendar-date {
-        width: 20px;
-        height: 20px;
-        font-size: 10px;
-    }
-
-    .allocation-item {
-        font-size: 9px;
-        padding: 2px 4px;
-        margin-bottom: 2px;
-    }
-
-    .allocation-item.project-date-marker {
-        font-size: 8px;
-        padding: 1px 4px;
-    }
-
-    .talent-sidebar {
-        width: 100%;
-        max-height: 220px;
-        border-right: none;
-        border-bottom: 1px solid var(--border-color);
-        border-radius: var(--border-radius-lg);
-        overflow: hidden;
-    }
-
-    .talent-sidebar-header {
-        padding: 12px;
-        flex-shrink: 0;
-    }
-
-    .talent-sidebar-title {
-        font-size: 14px;
-        margin-bottom: 8px;
-    }
-
-    .talent-filter .form-select {
-        padding: 8px;
-        font-size: 13px;
-    }
-
-    .talent-list {
-        padding: 8px;
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-        overflow-y: auto;
-        -webkit-overflow-scrolling: touch;
-        max-height: 150px;
-    }
-
-    .talent-card {
-        flex: 1 1 calc(50% - 4px);
-        min-width: 140px;
-        padding: 10px;
-        margin-bottom: 0;
-    }
-
-    .talent-avatar {
-        width: 32px;
-        height: 32px;
-        font-size: 12px;
-    }
-
-    .talent-name {
-        font-size: 13px;
-    }
-
-    .talent-location {
-        font-size: 10px;
-    }
-
-    .talent-status {
-        font-size: 11px;
-    }
-
-    .talent-date-indicator {
-        padding: 6px 10px;
-        font-size: 12px;
-        margin-bottom: 8px;
-    }
-
-    .legend-container {
-        padding: 12px;
-    }
-
-    .legend-title {
-        font-size: 13px;
-        margin-bottom: 8px;
-    }
-
-    .legend-items {
-        gap: 8px;
-        flex-wrap: wrap;
-    }
-
-    .legend-color {
-        width: 12px;
-        height: 12px;
-    }
-
-    .legend-label {
-        font-size: 11px;
-    }
-
-    .project-detail-grid {
-        grid-template-columns: 1fr;
-        gap: 12px;
-    }
-
-    /* Calendar container scrollable - FIX */
-    .calendar-container {
-        overflow: visible;
-    }
-
-    /* Wrapper for scroll */
-    .calendar-scroll-wrapper {
-        overflow-x: auto;
-        overflow-y: visible;
-        -webkit-overflow-scrolling: touch;
-        margin: 0 -12px;
-        padding: 0 12px;
-    }
-
-    .calendar-grid {
-        min-width: 500px;
-        display: grid;
-        grid-template-columns: repeat(7, minmax(65px, 1fr));
-    }
-
-    .calendar-day-header {
-        min-width: 65px;
-    }
-
-    .calendar-day {
-        min-width: 65px;
-    }
-}
-
-/* Small Mobile */
-@media (max-width: 480px) {
-    .calendar-header {
-        flex-direction: column;
-        align-items: stretch;
-    }
-
-    .calendar-title {
-        text-align: center;
-        margin-bottom: 8px;
-    }
-
-    .calendar-day {
-        min-height: 45px;
-        padding: 2px;
-    }
-
-    .calendar-date {
-        font-size: 10px;
-    }
-
-    .allocation-item {
-        font-size: 8px;
-        padding: 1px 2px;
-        border-radius: 2px;
-    }
-
-    .talent-sidebar {
-        max-height: 180px;
-    }
-
-    .talent-card {
-        flex: 1 1 100%;
-        padding: 8px;
-    }
-
-    .talent-list {
-        flex-direction: column;
-    }
-
-    .legend-container {
-        display: none;
-        /* Hide legend on very small screens */
-    }
-}
-
-/* Landscape phone optimization */
-@media (max-width: 768px) and (orientation: landscape) {
-    .calendar-page-layout {
-        flex-direction: row;
-    }
-
-    .talent-sidebar {
-        width: 200px;
-        max-height: none;
-        height: calc(100vh - 120px);
-        border-right: 1px solid var(--border-color);
-        border-bottom: none;
-    }
-
-    .talent-list {
-        flex-direction: column;
-    }
-
-    .talent-card {
-        flex: none;
-        width: 100%;
-    }
-}
-
-
-/* ===== CALENDAR VIEW TOGGLE ===== */
-.calendar-controls {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-}
-
-.calendar-view-toggle {
-    display: flex;
-    background-color: var(--bg-tertiary);
-    border-radius: var(--border-radius);
-    padding: 2px;
-}
-
-.view-btn {
-    padding: 6px 12px;
-    border: none;
-    background: none;
-    font-size: 13px;
-    color: var(--text-secondary);
-    cursor: pointer;
-    border-radius: calc(var(--border-radius) - 2px);
-    transition: all var(--transition-fast);
-}
-
-.view-btn:hover {
-    color: var(--text-primary);
-}
-
-.view-btn.active {
-    background-color: var(--bg-primary);
-    color: var(--primary-color);
-    font-weight: 500;
-    box-shadow: var(--shadow-sm);
-}
-
-/* Week View */
-.calendar-grid.week-view {
-    grid-template-columns: repeat(7, 1fr);
-    grid-template-rows: auto 1fr;
-}
-
-.calendar-grid.week-view .calendar-day {
-    min-height: 200px;
-}
-
-.calendar-grid.week-view .calendar-day.week-day {
-    min-height: 250px;
-}
-
-.calendar-grid.week-view .calendar-allocations {
-    max-height: none;
-}
-
-/* Responsive calendar controls */
-@media (max-width: 768px) {
-    .calendar-header {
-        flex-direction: column;
-        gap: 12px;
-        align-items: stretch;
-    }
-
-    .calendar-controls {
-        flex-direction: column;
-        gap: 8px;
-    }
-
-    .calendar-view-toggle {
-        width: 100%;
-        justify-content: center;
-    }
-
-    .view-btn {
-        flex: 1;
-        text-align: center;
-    }
-
-    .calendar-nav {
-        width: 100%;
-        justify-content: center;
-    }
-
-    .calendar-grid.week-view .calendar-day {
-        min-height: 150px;
-    }
-}
+.talent-status.available { color: var(--success-color); }
+.talent-status.unavailable { color: var(--danger-color); }

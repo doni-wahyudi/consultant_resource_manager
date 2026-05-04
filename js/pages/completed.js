@@ -12,10 +12,10 @@ const CompletedPage = {
 
         container.innerHTML = `
             <div class="page-header">
-                <h1 class="page-title">Completed Projects</h1>
+                <h1 class="page-title">History</h1>
                 <div class="header-controls">
                     <select id="payment-filter" class="form-select">
-                        <option value="">All</option>
+                        <option value="">All Payments</option>
                         <option value="paid">Paid</option>
                         <option value="unpaid" selected>Unpaid</option>
                     </select>
@@ -92,8 +92,9 @@ const CompletedPage = {
         if (completed.length === 0) {
             container.innerHTML = `
                 <div class="empty-state">
-                    <div class="empty-state-icon">✅</div>
-                    <h3 class="empty-state-title">No completed projects</h3>
+                    <div class="empty-state-icon">📚</div>
+                    <h3 class="empty-state-title">No history yet</h3>
+                    <p class="empty-state-text">Completed activities will appear here</p>
                 </div>
             `;
             return;
@@ -103,7 +104,7 @@ const CompletedPage = {
 
         container.innerHTML = `
             <table class="data-table">
-                <thead><tr><th>Name</th><th>Client</th><th>Dates</th><th>Total Days</th><th>Talents</th><th>Attachment</th><th>Payment Details</th><th>Actions</th></tr></thead>
+                <thead><tr><th>Name</th><th>Entity</th><th>Dates</th><th>Total Days</th><th>Team</th><th>Attachment</th><th>Payment Details</th><th>Actions</th></tr></thead>
                 <tbody>
                     ${completed.map(p => {
             const client = clients.find(c => c.id === p.client_id);
@@ -146,7 +147,7 @@ const CompletedPage = {
                                 </td>
                                 <td class="payment-details-cell">
                                     <div class="payment-main">
-                                        <span class="payment-label">Project:</span>
+                                        <span class="payment-label">Activity:</span>
                                         <span class="status-badge ${p.is_paid ? 'paid' : 'unpaid'}">${p.is_paid ? 'Paid' : 'Unpaid'}</span>
                                     </div>
                                     <div class="payment-sub">
@@ -258,7 +259,7 @@ const CompletedPage = {
             content: `
                 <div class="payment-modal-content">
                     <div class="payment-section">
-                        <h4 class="payment-section-title">💰 Project Payment</h4>
+                        <h4 class="payment-section-title">💰 Activity Payment</h4>
                         <div class="payment-status-row">
                             <span class="status-badge lg ${project.is_paid ? 'paid' : 'unpaid'}">
                                 ${project.is_paid ? '✓ Paid' : '○ Unpaid'}
@@ -378,7 +379,7 @@ const CompletedPage = {
         const content = `
             <form id="completed-project-form" class="modal-form">
                 <div class="form-group">
-                    <label class="form-label">Project Name <span class="required">*</span></label>
+                    <label class="form-label">Activity Name <span class="required">*</span></label>
                     <input type="text" name="name" class="form-input" value="${project?.name || ''}" required>
                 </div>
                 <div class="form-group">
@@ -386,9 +387,9 @@ const CompletedPage = {
                     <textarea name="description" class="form-textarea">${project?.description || ''}</textarea>
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Client</label>
+                    <label class="form-label">Entity</label>
                     <select name="client_id" class="form-select">
-                        <option value="">Select Client</option>
+                        <option value="">Select Entity</option>
                         ${clients.map(c => `
                             <option value="${c.id}" ${project?.client_id === c.id ? 'selected' : ''}>${c.name}</option>
                         `).join('')}
@@ -396,7 +397,7 @@ const CompletedPage = {
                 </div>
                 <div class="form-group">
                     <label class="form-label">Date Batches</label>
-                    <p class="form-hint">Add one or more date ranges for this project</p>
+                    <p class="form-hint">Add one or more date ranges for this activity</p>
                     <div class="batch-dates-container">
                         <div id="completed-batch-dates-list" class="batch-list">
                             ${(project?.batches || []).map(batch => `
@@ -430,7 +431,7 @@ const CompletedPage = {
                 </div>
                 <div class="form-row">
                     <div class="form-group">
-                        <label class="form-label">Project Type</label>
+                        <label class="form-label">Activity Type</label>
                         <select name="project_type" class="form-select">
                             <option value="offline" ${project?.project_type === 'offline' || !project?.project_type ? 'selected' : ''}>Offline</option>
                             <option value="online" ${project?.project_type === 'online' ? 'selected' : ''}>Online</option>
@@ -460,7 +461,7 @@ const CompletedPage = {
                     <input type="hidden" name="required_skills" id="completed-skills-hidden" value='${JSON.stringify(currentSkills)}'>
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Assigned Talents</label>
+                    <label class="form-label">Assigned Team Members</label>
                     <div class="talent-selection-list" id="completed-talent-checkboxes">
                         ${talents.length > 0 ? talents.map(t => `
                             <label class="checkbox-label talent-checkbox">
@@ -478,7 +479,7 @@ const CompletedPage = {
         `;
 
         Modal.show({
-            title: 'Edit Completed Project',
+            title: 'Edit Completed Activity',
             content: content,
             size: 'lg',
             footer: `

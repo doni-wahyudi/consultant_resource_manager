@@ -6,16 +6,19 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="theme-color" content="#4f46e5">
-    <title>NIN Resource Manager</title>
+    <meta name="theme-color" content="#000000">
+    <title>Auro Resource Manager</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
     <!-- Favicon -->
-    <link rel="icon" type="image/svg+xml" href="assets/icons/favicon.svg">
-    <link rel="icon" type="image/png" sizes="32x32" href="assets/icons/favicon.svg">
-    <link rel="apple-touch-icon" sizes="180x180" href="assets/icons/favicon.svg">
-    <link rel="stylesheet" href="css/main.css?v=7">
-    <link rel="stylesheet" href="css/components.css?v=7">
-    <link rel="stylesheet" href="css/calendar.css?v=7">
-    <link rel="stylesheet" href="css/pages.css?v=7">
+    <link rel="icon" type="image/png" href="assets/icons/aurotech_logo.png">
+    <link rel="apple-touch-icon" href="assets/icons/aurotech_logo.png">
+    <link rel="stylesheet" href="css/main.css?v=10">
+    <link rel="stylesheet" href="css/components.css?v=10">
+    <link rel="stylesheet" href="css/calendar.css?v=10">
+    <link rel="stylesheet" href="css/pages.css?v=10">
     <!-- Supabase Client Library -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -33,7 +36,8 @@
         <!-- Navigation Sidebar -->
         <nav class="nav-sidebar" id="nav-sidebar">
             <div class="nav-header">
-                <h1 class="nav-logo">NIN</h1>
+                <img src="assets/icons/aurotech_logo.png" alt="Auro Logo" class="nav-logo-img">
+                <h1 class="nav-logo">AURO</h1>
                 <span class="nav-subtitle">Resource Manager</span>
             </div>
             <ul class="nav-menu">
@@ -45,32 +49,32 @@
                 </li>
                 <li class="nav-item">
                     <a href="#/calendar" class="nav-link" data-page="calendar">
-                        <span class="nav-icon">📅</span>
-                        <span class="nav-text">Calendar</span>
+                        <span class="nav-icon">⏳</span>
+                        <span class="nav-text">Timeline</span>
                     </a>
                 </li>
                 <li class="nav-item">
                     <a href="#/talents" class="nav-link" data-page="talents">
                         <span class="nav-icon">👥</span>
-                        <span class="nav-text">Talents</span>
+                        <span class="nav-text">Team</span>
                     </a>
                 </li>
                 <li class="nav-item">
                     <a href="#/projects" class="nav-link" data-page="projects">
-                        <span class="nav-icon">📁</span>
-                        <span class="nav-text">Projects</span>
+                        <span class="nav-icon">⚡</span>
+                        <span class="nav-text">Activities</span>
                     </a>
                 </li>
                 <li class="nav-item">
                     <a href="#/completed" class="nav-link" data-page="completed">
-                        <span class="nav-icon">✅</span>
-                        <span class="nav-text">Completed</span>
+                        <span class="nav-icon">📜</span>
+                        <span class="nav-text">History</span>
                     </a>
                 </li>
                 <li class="nav-item">
                     <a href="#/clients" class="nav-link" data-page="clients">
                         <span class="nav-icon">🏢</span>
-                        <span class="nav-text">Clients</span>
+                        <span class="nav-text">Entities</span>
                     </a>
                 </li>
                 <li class="nav-item">

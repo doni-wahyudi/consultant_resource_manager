@@ -14,7 +14,7 @@ const TalentDetailPage = {
         if (!talent) {
             container.innerHTML = `
                 <div class="empty-state">
-                    <h3 class="empty-state-title">Talent not found</h3>
+                    <h3 class="empty-state-title">Team Member not found</h3>
                     <a href="#/talents" class="btn btn-primary">Back to Talents</a>
                 </div>
             `;
@@ -118,7 +118,7 @@ const TalentDetailPage = {
         
         container.innerHTML = `
             <table class="data-table">
-                <thead><tr><th>Project</th><th>Period</th></tr></thead>
+                <thead><tr><th>Activity</th><th>Period</th></tr></thead>
                 <tbody>
                     ${history.map(a => {
                         const project = projects.find(p => p.id === a.project_id);
