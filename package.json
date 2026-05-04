@@ -3,7 +3,14 @@
   "version": "1.0.0",
   "description": "Consultant Resource Management System",
   "scripts": {
-    "test": "node tests/property/area-crud.test.js",
-    "test:property": "node tests/property/area-crud.test.js"
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.7"
+  },
+  "devDependencies": {
+    "vite": "^5.1.4"
   }
 }
